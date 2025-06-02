@@ -1,0 +1,210 @@
+'use client'
+
+import { useEffect, useState, use } from 'react'
+import { supabase } from '@/app/lib/supabase'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { ArrowLeft, Edit, Trash2, Plus } from 'lucide-react'
+
+interface Priere {
+  id: string
+  type: 'guerison' | 'freres' | 'intercession'
+  personne_prenom: string
+  personne_nom?: string
+  date: string
+  sujet: string
+  sujet_detail?: string
+  nombre_fois: number
+  notes?: string
+  visibilite: string
+  created_at: string
+}
+
+interface SuiviPriere {
+  id: string
+  date: string
+  notes: string
+  evolution?: string
+  nouvelle_priere?: boolean
+  created_at: string
+}
+
+export default function PriereDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
+  const router = useRouter()
+  const [priere, setPriere] = useState<Priere | null>(null)
+  const [suivis, setSuivis] = useState<SuiviPriere[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadPriere()
+    loadSuivis()
+  }, [resolvedParams.id])
+
+  const loadPriere = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('prieres')
+      .select('*')
+      .eq('id', resolvedParams.id)
+      .single()
+
+    if (error || !data) {
+      console.error('Erreur:', error)
+      router.push('/prieres')
+    } else {
+      setPriere(data)
+    }
+    setLoading(false)
+  }
+
+  const loadSuivis = async () => {
+    const { data, error } = await supabase
+      .from('suivis_priere')
+      .select('*')
+      .eq('priere_id', resolvedParams.id)
+      .order('date', { ascending: false })
+
+    if (!error && data) {
+      setSuivis(data)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette prière ?')) return
+
+    const { error } = await supabase
+      .from('prieres')
+      .delete()
+      .eq('id', resolvedParams.id)
+
+    if (error) {
+      console.error('Erreur lors de la suppression:', error)
+    } else {
+      router.push('/prieres')
+    }
+  }
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'guerison': return 'Prière de guérison'
+      case 'freres': return 'Prière des frères'
+      case 'intercession': return 'Intercession'
+      default: return type
+    }
+  }
+
+  const getEvolutionLabel = (evolution?: string) => {
+    switch (evolution) {
+      case 'amelioration': return '✅ Amélioration'
+      case 'stable': return '➡️ Stable'
+      case 'aggravation': return '⚠️ Aggravation'
+      case 'gueri': return '🙏 Guéri'
+      default: return ''
+    }
+  }
+
+  if (loading || !priere) {
+    return <div className="container">Chargement...</div>
+  }
+
+  return (
+    <div className="container">
+      <div className="page-header">
+        <Link href="/prieres" className="back-link">
+          <ArrowLeft size={20} />
+          <span>Retour</span>
+        </Link>
+        <div className="page-actions">
+          <Link href={`/prieres/${priere.id}/modifier`} className="btn btn-secondary">
+            <Edit size={16} />
+            <span>Modifier</span>
+          </Link>
+          <button onClick={handleDelete} className="btn btn-danger">
+            <Trash2 size={16} />
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="detail-card">
+        <div className="detail-header">
+          <h1>{priere.personne_prenom} {priere.personne_nom}</h1>
+          <span className="tag">
+            {getTypeLabel(priere.type)}
+          </span>
+        </div>
+
+        <div className="detail-meta">
+          <div className="meta-item">
+            <span className="font-medium">Date :</span>
+            <span>{format(new Date(priere.date), 'd MMMM yyyy', { locale: fr })}</span>
+          </div>
+          <div className="meta-item">
+            <span className="font-medium">Nombre de fois prié :</span>
+            <span>{priere.nombre_fois}</span>
+          </div>
+        </div>
+
+        <div className="detail-section">
+          <h3>Intention</h3>
+          <p>{priere.sujet}</p>
+        </div>
+
+        {priere.notes && (
+          <div className="detail-section">
+            <h3>Notes</h3>
+            <p className="whitespace-pre-wrap">{priere.notes}</p>
+          </div>
+        )}
+
+        <div className="detail-footer">
+          <p className="text-muted">
+            Créée le {format(new Date(priere.created_at), 'd MMMM yyyy à HH:mm', { locale: fr })}
+          </p>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="flex justify-between items-center mb-4">
+          <h2>Suivis de prière</h2>
+          <Link href={`/prieres/${priere.id}/suivi`} className="btn btn-primary">
+            <Plus size={16} />
+            <span>Ajouter un suivi</span>
+          </Link>
+        </div>
+
+        {suivis.length === 0 ? (
+          <p className="text-secondary">Aucun suivi pour le moment.</p>
+        ) : (
+          <div className="space-y-4">
+            {suivis.map((suivi) => (
+              <div key={suivi.id} className="border-l-4 border-primary pl-4">
+                <div className="mb-2">
+                  <span className="font-medium">
+                    {format(new Date(suivi.date), 'd MMMM yyyy', { locale: fr })}
+                  </span>
+                  {suivi.evolution && (
+                    <span className="ml-3">{getEvolutionLabel(suivi.evolution)}</span>
+                  )}
+                </div>
+                <p className="text-secondary">{suivi.notes}</p>
+                {suivi.nouvelle_priere && (
+                  <p className="text-sm text-primary mt-1">🙏 Nouvelle prière effectuée</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

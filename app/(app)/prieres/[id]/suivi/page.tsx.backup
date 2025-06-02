@@ -1,0 +1,224 @@
+'use client'
+
+import { useState, useEffect, use } from 'react'
+import { supabase } from '@/app/lib/supabase'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+
+interface Priere {
+  id: string
+  personne_prenom: string
+  personne_nom?: string
+  sujet: string
+  nombre_fois: number
+}
+
+export default function AjouterSuiviPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
+  const router = useRouter()
+  const [priere, setPriere] = useState<Priere | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [notes, setNotes] = useState('')
+  const [evolution, setEvolution] = useState('')
+  const [nouvellePriere, setNouvellePriere] = useState(false)
+  const [nombreFoisSupp, setNombreFoisSupp] = useState(1)
+
+  useEffect(() => {
+    loadPriere()
+  }, [resolvedParams.id])
+
+  const loadPriere = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('prieres')
+      .select('*')
+      .eq('id', resolvedParams.id)
+      .single()
+
+    if (error || !data) {
+      console.error('Erreur:', error)
+      router.push('/prieres')
+    } else {
+      setPriere(data)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Ajouter le suivi
+      const { error: suiviError } = await supabase
+        .from('suivis_priere')
+        .insert({
+          priere_id: resolvedParams.id,
+          date,
+          notes,
+          evolution: evolution || null,
+          nouvelle_priere: nouvellePriere
+        })
+
+      if (suiviError) throw suiviError
+
+      // Si nouvelle prière, mettre à jour le compteur
+      if (nouvellePriere && priere) {
+        const { error: updateError } = await supabase
+          .from('prieres')
+          .update({
+            nombre_fois: priere.nombre_fois + nombreFoisSupp
+          })
+          .eq('id', resolvedParams.id)
+
+        if (updateError) throw updateError
+      }
+
+      router.push(`/prieres/${resolvedParams.id}`)
+    } catch (error: any) {
+      setError(error.message || 'Une erreur est survenue')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!priere) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Chargement...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="header">
+        <div className="container">
+          <div className="header-content">
+            <Link href={`/prieres/${resolvedParams.id}`} className="text-primary hover:underline">
+              ← Retour à la prière
+            </Link>
+            <h1 className="text-2xl font-bold text-primary font-serif">
+              Ajouter un suivi
+            </h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container max-w-2xl mx-auto py-8">
+        <div className="card mb-4">
+          <h2 className="text-lg font-semibold mb-2">
+            Suivi pour : {priere.personne_prenom} {priere.personne_nom}
+          </h2>
+          <p className="text-secondary">{priere.sujet}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="card">
+          {error && (
+            <div className="alert alert-error">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div className="form-group">
+              <label htmlFor="date" className="label">
+                Date du suivi *
+              </label>
+              <input
+                id="date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="notes" className="label">
+                Notes sur l'évolution *
+              </label>
+              <textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                required
+                rows={4}
+                className="textarea"
+                placeholder="Comment la situation a-t-elle évolué ?"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="evolution" className="label">
+                Évolution constatée
+              </label>
+              <select
+                id="evolution"
+                value={evolution}
+                onChange={(e) => setEvolution(e.target.value)}
+                className="select"
+              >
+                <option value="">-- Sélectionner --</option>
+                <option value="amelioration">Amélioration</option>
+                <option value="stable">Stable</option>
+                <option value="aggravation">Aggravation</option>
+                <option value="gueri">Guéri</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={nouvellePriere}
+                  onChange={(e) => setNouvellePriere(e.target.checked)}
+                />
+                <span>J'ai prié à nouveau pour cette intention</span>
+              </label>
+              
+              {nouvellePriere && (
+                <div className="mt-3">
+                  <label htmlFor="nombreFois" className="label">
+                    Nombre de fois
+                  </label>
+                  <input
+                    id="nombreFois"
+                    type="number"
+                    min="1"
+                    value={nombreFoisSupp}
+                    onChange={(e) => setNombreFoisSupp(parseInt(e.target.value) || 1)}
+                    className="input"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Link href={`/prieres/${resolvedParams.id}`} className="btn btn-secondary">
+                Annuler
+              </Link>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary"
+              >
+                {loading ? 'Enregistrement...' : 'Enregistrer le suivi'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </main>
+    </div>
+  )
+}
