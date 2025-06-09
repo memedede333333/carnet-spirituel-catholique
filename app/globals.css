@@ -161,8 +161,8 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
 }
 
-.from-amber-50 { --from-color: #f0f9ff; }
-.to-orange-50 { --to-color: #e0f2fe; }
+.from-amber-50 { --from-color: #fffbeb; }
+.to-orange-50 { --to-color: #fff7ed; }
 .from-indigo-50 { --from-color: #eef2ff; }
 .to-purple-50 { --to-color: #dbeafe; }
 .from-emerald-50 { --from-color: #ecfdf5; }
