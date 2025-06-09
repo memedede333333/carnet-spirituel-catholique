@@ -118,7 +118,7 @@ export default function RelecturePage() {
   const getTypeConfig = (type: string) => {
     const configs: Record<string, any> = {
       grace: { emoji: "✨", icon: Sparkles, color: '#FCD34D', gradient: 'linear-gradient(135deg, #FEF3C7, #FDE68A)', label: 'Grâce' },
-      priere: { emoji: "🙏", icon: Heart, color: '#818CF8', gradient: 'linear-gradient(135deg, #E0E7FF, #C7D2FE)', label: 'Prière' },
+      priere: { emoji: "🙏", emoji: "❤️", color: '#818CF8', gradient: 'linear-gradient(135deg, #E0E7FF, #C7D2FE)', label: 'Prière' },
       ecriture: { emoji: "📖", icon: BookOpen, color: '#34D399', gradient: 'linear-gradient(135deg, #D1FAE5, #A7F3D0)', label: 'Écriture' },
       parole: { emoji: "🕊️", icon: MessageSquare, color: '#60A5FA', gradient: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)', label: 'Parole' },
       rencontre: { emoji: "🤝", icon: Users, color: '#F87171', gradient: 'linear-gradient(135deg, #FCE7F3, #FBCFE8)', label: 'Rencontre' }
@@ -136,7 +136,7 @@ export default function RelecturePage() {
     
     if (graceCount > 5) {
       suggestions.push({
-        icon: Cross,
+        emoji: "✨",
         text: `${graceCount} grâces reçues sur cette période. Deo gratias !`,
         color: '#FCD34D'
       })
@@ -144,7 +144,7 @@ export default function RelecturePage() {
     
     if (accomplishedParoles > 0) {
       suggestions.push({
-        icon: Zap,
+        emoji: "🕊️",
         text: `${accomplishedParoles} parole${accomplishedParoles > 1 ? 's' : ''} accomplie${accomplishedParoles > 1 ? 's' : ''}. L'Esprit Saint est à l'œuvre.`,
         color: '#60A5FA'
       })
@@ -159,7 +159,7 @@ export default function RelecturePage() {
     if (oldPrayers.length > 0 && Math.random() < 0.3) { // 30% de chance d'afficher
       const prayer = oldPrayers[Math.floor(Math.random() * oldPrayers.length)]
       suggestions.push({
-        icon: Heart,
+        emoji: "🙏",
         text: `${prayer.personne_prenom}, pour qui tu as prié, traverse peut-être ton esprit aujourd'hui...`,
         color: '#818CF8',
         action: 'Prendre des nouvelles'
@@ -579,7 +579,7 @@ export default function RelecturePage() {
               transition: 'all 0.2s'
             }}
           >
-            <Heart size={16} />
+            <span style={{fontSize: "16px"}}>❤️</span>
             Consolations & désolations
           </button>
           <button
@@ -747,7 +747,7 @@ export default function RelecturePage() {
                 gap: '0.5rem',
                 margin: 0
               }}>
-                <Church size={20} />
+                <span style={{fontSize: "20px"}}>🕊️</span>
                 L'Esprit Saint est à l'œuvre
               </h3>
               <button
@@ -777,7 +777,7 @@ export default function RelecturePage() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {suggestions.map((suggestion, index) => {
-                  const Icon = suggestion.icon
+                  // Icon remplacé par emoji
                   return (
                     <div 
                       key={index}
@@ -811,7 +811,7 @@ export default function RelecturePage() {
                         borderRadius: '0.5rem',
                         flexShrink: 0
                       }}>
-                        <Icon size={20} style={{ color: suggestion.color }} />
+                        <span style={{fontSize: "20px", color: suggestion.color}}>{suggestion.emoji || "✨"}</span>
                       </div>
                       <p style={{ color: '#1f2937', fontSize: '0.875rem', margin: 0, flex: 1 }}>
                         {suggestion.text}
@@ -1130,7 +1130,7 @@ export default function RelecturePage() {
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
-                <Heart size={24} />
+                <span style={{fontSize: "24px"}}>❤️</span>
                 Consolations
               </h3>
               <p style={{ color: '#6b7280', marginBottom: '1rem' }}>

@@ -11,15 +11,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/layout.js"
     ],
-    "/(app)/prieres/[id]/page": [
+    "/(app)/relecture/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/prieres/[id]/page.js"
-    ],
-    "/(app)/ecritures/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/ecritures/[id]/page.js"
+      "static/chunks/app/(app)/relecture/page.js"
     ]
   }
 }
