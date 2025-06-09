@@ -600,8 +600,42 @@ export default function RelecturePage() {
             <Flower size={16} />
             Jardin des grâces
           </button>
-          
-          
+          <button
+            onClick={() => setViewMode('fleuve')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'fleuve' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'fleuve' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Sparkles size={16} />
+            Fleuve de vie
+          </button>
+          <button
+            onClick={() => setViewMode('constellation')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'constellation' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'constellation' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Star size={16} />
+            Constellation
+          </button>
         </div>
 
         {/* Filtres élégants */}
