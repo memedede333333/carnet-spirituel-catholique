@@ -1,287 +1,466 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/app/lib/supabase'
-import { rechercherPassageBiblique } from '@/app/lib/aelf'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-
-const CONTEXTES = [
-  { value: 'messe', label: 'Messe' },
-  { value: 'lectio', label: 'Lectio Divina' },
-  { value: 'retraite', label: 'Retraite' },
-  { value: 'groupe', label: 'Groupe de prière' },
-  { value: 'personnel', label: 'Lecture personnelle' }
-]
+import { supabase } from '@/app/lib/supabase'
+import { Calendar, Book, Heart, User, Sparkles, ArrowLeft, Plus } from 'lucide-react'
 
 export default function NouvelleEcriturePage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [searching, setSearching] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  
   const [reference, setReference] = useState('')
   const [texteComplet, setTexteComplet] = useState('')
-  const [contexte, setContexte] = useState('personnel')
+  const [traduction, setTraduction] = useState('Bible de Jérusalem')
+  const [contexte, setContexte] = useState<'messe' | 'lectio' | 'retraite' | 'groupe' | 'personnel'>('personnel')
   const [dateReception, setDateReception] = useState(new Date().toISOString().split('T')[0])
   const [ceQuiMaTouche, setCeQuiMaTouche] = useState('')
   const [pourQui, setPourQui] = useState('moi')
   const [fruits, setFruits] = useState('')
-  const [visibilite, setVisibilite] = useState<'prive' | 'anonyme' | 'public'>('prive')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  const rechercherTexte = async () => {
-    if (!reference.trim()) return
-
-    setSearching(true)
-    try {
-      const texte = await rechercherPassageBiblique(reference)
-      if (texte) {
-        setTexteComplet(texte)
-      } else {
-        // Si l'API ne retourne rien, on laisse l'utilisateur entrer le texte manuellement
-        alert('Texte non trouvé. Vous pouvez le saisir manuellement.')
-      }
-    } catch (error) {
-      console.error('Erreur recherche:', error)
-    } finally {
-      setSearching(false)
-    }
-  }
+  const contexteOptions = [
+    { value: 'messe', label: 'Messe' },
+    { value: 'lectio', label: 'Lectio Divina' },
+    { value: 'retraite', label: 'Retraite' },
+    { value: 'groupe', label: 'Groupe de prière' },
+    { value: 'personnel', label: 'Personnel' }
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
+    
+    if (!reference.trim()) {
+      setError('Veuillez indiquer la référence biblique')
+      return
+    }
+
+    if (!texteComplet.trim()) {
+      setError('Veuillez saisir le texte biblique')
+      return
+    }
+
+    setSaving(true)
+    setError('')
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      const fruitsArray = fruits
-        .split(',')
-        .map(fruit => fruit.trim())
-        .filter(fruit => fruit.length > 0)
+      if (!user) throw new Error('Non authentifié')
 
       const { error } = await supabase
         .from('paroles_ecriture')
         .insert({
           user_id: user.id,
-          reference,
-          texte_complet: texteComplet,
+          reference: reference.trim(),
+          texte_complet: texteComplet.trim(),
+          traduction: traduction.trim(),
           contexte,
           date_reception: dateReception,
-          ce_qui_ma_touche: ceQuiMaTouche,
-          pour_qui: pourQui,
-          fruits: fruitsArray.length > 0 ? fruitsArray : null,
-          visibilite
+          ce_qui_ma_touche: ceQuiMaTouche.trim() || null,
+          pour_qui: pourQui.trim() || 'moi',
+          fruits: fruits ? fruits.split(',').map(f => f.trim()).filter(f => f) : []
         })
 
       if (error) throw error
 
       router.push('/ecritures')
-    } catch (error: any) {
-      setError(error.message || 'Une erreur est survenue')
+    } catch (error) {
+      console.error('Erreur:', error)
+      setError('Une erreur est survenue lors de l\'enregistrement')
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <Link href="/ecritures" className="text-primary hover:underline mb-2 inline-block">
-            ← Retour aux écritures
-          </Link>
-          <h1 className="text-2xl font-bold text-primary font-serif">
-            Noter une parole de l'Écriture
-          </h1>
-        </div>
-      </header>
+    <div style={{
+      minHeight: '100vh',      padding: '2rem 1rem'
+    }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+          overflow: 'hidden'
+        }}>
+          {/* En-tête vert pastel */}
+          <div style={{
+            background: 'linear-gradient(135deg, #D1FAE5, #A7F3D0)',
+            padding: '2rem',
+            color: '#064E3B'
+          }}>
+            <Link href="/ecritures" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: '#064E3B',
+              textDecoration: 'none',
+              marginBottom: '1rem',
+              fontSize: '0.875rem',
+              opacity: 0.8,
+              transition: 'opacity 0.2s'
+            }}>
+              <ArrowLeft size={16} />
+              Retour aux écritures
+            </Link>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <form onSubmit={handleSubmit} className="card">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
-            </div>
-          )}
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <Book size={32} />
+              Nouveau passage biblique
+            </h1>
+          </div>
 
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="reference" className="block text-sm font-medium mb-2">
-                Référence biblique *
-              </label>
-              <div className="flex gap-2">
+          {/* Formulaire */}
+          <form onSubmit={handleSubmit} style={{ padding: '2rem' }}>
+            {error && (
+              <div style={{
+                background: '#FEE2E2',
+                color: '#991B1B',
+                padding: '1rem',
+                borderRadius: '0.5rem',
+                marginBottom: '1.5rem'
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Référence et traduction */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#064E3B'
+                }}>
+                  Référence biblique
+                </label>
                 <input
-                  id="reference"
                   type="text"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  required
-                  className="input flex-1"
-                  placeholder="Ex: Jn 3, 16 ou Mt 5, 1-12"
+                  placeholder="Ex: Jean 3, 16-17"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #D1FAE5',
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#F0FDF4'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
+                  onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
                 />
-                <button
-                  type="button"
-                  onClick={rechercherTexte}
-                  disabled={searching}
-                  className="btn-secondary"
-                >
-                  {searching ? 'Recherche...' : 'Chercher AELF'}
-                </button>
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#064E3B'
+                }}>
+                  Traduction
+                </label>
+                <input
+                  type="text"
+                  value={traduction}
+                  onChange={(e) => setTraduction(e.target.value)}
+                  placeholder="Ex: Bible de Jérusalem, TOB..."
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #D1FAE5',
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#F0FDF4'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
+                  onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
+                />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="texte" className="block text-sm font-medium mb-2">
-                Texte complet *
+            {/* Texte complet */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                fontWeight: '500',
+                color: '#064E3B'
+              }}>
+                Texte biblique
               </label>
               <textarea
-                id="texte"
                 value={texteComplet}
                 onChange={(e) => setTexteComplet(e.target.value)}
-                required
+                placeholder="Copiez ou tapez le passage biblique complet..."
                 rows={6}
-                className="textarea"
-                placeholder="Collez ou tapez le passage biblique ici..."
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '2px solid #D1FAE5',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#F0FDF4',
+                  fontFamily: 'Georgia, serif',
+                  lineHeight: '1.6'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
+                onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
               />
             </div>
 
-            <div>
-              <label htmlFor="contexte" className="block text-sm font-medium mb-2">
-                Contexte *
-              </label>
-              <select
-                id="contexte"
-                value={contexte}
-                onChange={(e) => setContexte(e.target.value)}
-                required
-                className="input"
-              >
-                {CONTEXTES.map((ctx) => (
-                  <option key={ctx.value} value={ctx.value}>
-                    {ctx.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="date" className="block text-sm font-medium mb-2">
-                Date de réception *
-              </label>
-              <input
-                id="date"
-                type="date"
-                value={dateReception}
-                onChange={(e) => setDateReception(e.target.value)}
-                required
-                className="input"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="touche" className="block text-sm font-medium mb-2">
-                Ce qui m'a touché *
-              </label>
-              <textarea
-                id="touche"
-                value={ceQuiMaTouche}
-                onChange={(e) => setCeQuiMaTouche(e.target.value)}
-                required
-                rows={3}
-                className="textarea"
-                placeholder="Qu'est-ce qui vous a particulièrement parlé dans ce passage ?"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="pour" className="block text-sm font-medium mb-2">
-                Pour qui ? *
-              </label>
-              <input
-                id="pour"
-                type="text"
-                value={pourQui}
-                onChange={(e) => setPourQui(e.target.value)}
-                required
-                className="input"
-                placeholder="Moi, prénom de quelqu'un, le groupe..."
-              />
-            </div>
-
-            <div>
-              <label htmlFor="fruits" className="block text-sm font-medium mb-2">
-                Fruits (séparés par des virgules)
-              </label>
-              <input
-                id="fruits"
-                type="text"
-                value={fruits}
-                onChange={(e) => setFruits(e.target.value)}
-                className="input"
-                placeholder="Paix, consolation, conversion..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Visibilité
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="prive"
-                    checked={visibilite === 'prive'}
-                    onChange={(e) => setVisibilite(e.target.value as any)}
-                    className="mr-2"
-                  />
-                  <span>Privée</span>
+            {/* Contexte et date */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#064E3B'
+                }}>
+                  Contexte de réception
                 </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="anonyme"
-                    checked={visibilite === 'anonyme'}
-                    onChange={(e) => setVisibilite(e.target.value as any)}
-                    className="mr-2"
-                  />
-                  <span>Anonyme</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {contexteOptions.map(option => (
+                    <label
+                      key={option.value}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        cursor: 'pointer',
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '0.5rem',
+                        background: contexte === option.value ? '#D1FAE5' : 'transparent',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="contexte"
+                        value={option.value}
+                        checked={contexte === option.value}
+                        onChange={(e) => setContexte(e.target.value as typeof contexte)}
+                        style={{ marginRight: '0.25rem' }}
+                      />
+                      <span style={{ color: contexte === option.value ? '#064E3B' : '#4B5563' }}>
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#064E3B'
+                }}>
+                  <Calendar size={20} />
+                  Date de réception
                 </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="public"
-                    checked={visibilite === 'public'}
-                    onChange={(e) => setVisibilite(e.target.value as any)}
-                    className="mr-2"
-                  />
-                  <span>Publique</span>
-                </label>
+                <input
+                  type="date"
+                  value={dateReception}
+                  onChange={(e) => setDateReception(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #D1FAE5',
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#F0FDF4'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
+                  onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
+                />
               </div>
             </div>
 
-            <div className="flex justify-between pt-4">
-              <Link href="/ecritures" className="btn-secondary">
+            {/* Ce qui m'a touché */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.5rem',
+                fontWeight: '500',
+                color: '#064E3B'
+              }}>
+                <Heart size={20} />
+                Ce qui m'a touché (optionnel)
+              </label>
+              <textarea
+                value={ceQuiMaTouche}
+                onChange={(e) => setCeQuiMaTouche(e.target.value)}
+                placeholder="Qu'est-ce qui vous a particulièrement marqué dans ce passage ?"
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '2px solid #D1FAE5',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#F0FDF4'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
+                onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
+              />
+            </div>
+
+            {/* Pour qui et fruits */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#064E3B'
+                }}>
+                  <User size={20} />
+                  Pour qui ? (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={pourQui}
+                  onChange={(e) => setPourQui(e.target.value)}
+                  placeholder="Moi, une personne, un groupe..."
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #D1FAE5',
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#F0FDF4'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
+                  onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
+                />
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#064E3B'
+                }}>
+                  <Sparkles size={20} />
+                  Fruits spirituels (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={fruits}
+                  onChange={(e) => setFruits(e.target.value)}
+                  placeholder="Paix, joie, conversion... (séparez par des virgules)"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #D1FAE5',
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#F0FDF4'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
+                  onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
+                />
+              </div>
+            </div>
+
+            {/* Boutons */}
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'flex-end'
+            }}>
+              <Link
+                href="/ecritures"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: '2px solid #A7F3D0',
+                  color: '#064E3B',
+                  textDecoration: 'none',
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  display: 'inline-block'
+                }}
+              >
                 Annuler
               </Link>
+              
               <button
                 type="submit"
-                disabled={loading}
-                className="btn-primary"
+                disabled={saving}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  background: '#6EE7B7',
+                  color: '#064E3B',
+                  border: 'none',
+                  fontWeight: '500',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  opacity: saving ? 0.7 : 1,
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
               >
-                {loading ? 'Enregistrement...' : 'Enregistrer'}
+                <Plus size={20} />
+                {saving ? 'Enregistrement...' : 'Enregistrer le passage'}
               </button>
             </div>
-          </div>
-        </form>
-      </main>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }

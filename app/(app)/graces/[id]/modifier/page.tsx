@@ -1,9 +1,10 @@
 'use client'
-import { useState, useEffect, use } from 'react'
-import { supabase } from '@/app/lib/supabase'
-import Link from 'next/link'
-import { ArrowLeft, Save, Calendar, MapPin, Tag, Eye } from 'lucide-react'
+
+import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { supabase } from '@/app/lib/supabase'
+import { Calendar, MapPin, Tag, Eye, ArrowLeft, Sparkles, Save } from 'lucide-react'
 
 interface Grace {
   id: string
@@ -12,22 +13,22 @@ interface Grace {
   lieu: string | null
   tags: string[]
   visibilite: string
+  statut_partage: string
 }
 
 export default function ModifierGracePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
-  const [grace, setGrace] = useState<Grace | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
   const router = useRouter()
-
-  // États du formulaire
+  const [grace, setGrace] = useState<Grace | null>(null)
   const [texte, setTexte] = useState('')
   const [date, setDate] = useState('')
   const [lieu, setLieu] = useState('')
-  const [tags, setTags] = useState('')
-  const [visibilite, setVisibilite] = useState('privee')
+  const [tagInput, setTagInput] = useState('')
+  const [tags, setTags] = useState<string[]>([])
+  const [visibilite, setVisibilite] = useState<'prive' | 'anonyme' | 'public'>('prive')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetchGrace()
@@ -35,17 +36,10 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
 
   const fetchGrace = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
       const { data, error } = await supabase
         .from('graces')
         .select('*')
         .eq('id', resolvedParams.id)
-        .eq('user_id', user.id)
         .single()
 
       if (error) throw error
@@ -54,20 +48,35 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
       setTexte(data.texte)
       setDate(data.date)
       setLieu(data.lieu || '')
-      setTags(data.tags?.join(', ') || '')
+      setTags(data.tags || [])
       setVisibilite(data.visibilite)
     } catch (error) {
       console.error('Erreur:', error)
-      setError('Grâce non trouvée')
+      router.push('/graces')
     } finally {
       setLoading(false)
     }
   }
 
+  const handleAddTag = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault()
+      if (!tags.includes(tagInput.trim())) {
+        setTags([...tags, tagInput.trim()])
+      }
+      setTagInput('')
+    }
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
     if (!texte.trim()) {
-      setError('Le texte de la grâce est requis')
+      setError('Veuillez décrire la grâce reçue')
       return
     }
 
@@ -75,28 +84,23 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
     setError('')
 
     try {
-      const tagsArray = tags
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag.length > 0)
-
       const { error } = await supabase
         .from('graces')
         .update({
           texte: texte.trim(),
           date,
           lieu: lieu.trim() || null,
-          tags: tagsArray,
-          visibilite,
-          updated_at: new Date().toISOString()
+          tags,
+          visibilite
         })
         .eq('id', resolvedParams.id)
 
       if (error) throw error
+
       router.push(`/graces/${resolvedParams.id}`)
     } catch (error) {
       console.error('Erreur:', error)
-      setError('Erreur lors de la modification')
+      setError('Une erreur est survenue lors de la modification')
     } finally {
       setSaving(false)
     }
@@ -105,133 +109,92 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fef7ed 0%, #ffffff 50%, #fef3c7 100%)',
-        padding: '2rem 1rem'
+        minHeight: '100vh',        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <p style={{ textAlign: 'center', color: '#6b7280' }}>Chargement...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error && !grace) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fef7ed 0%, #ffffff 50%, #fef3c7 100%)',
-        padding: '2rem 1rem'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Link href="/graces" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            color: '#f59e0b',
-            textDecoration: 'none',
-            marginBottom: '1.5rem'
-          }}>
-            <ArrowLeft style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-            Retour aux grâces
-          </Link>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            textAlign: 'center',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😇</div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-              Grâce introuvable
-            </h1>
-            <p style={{ color: '#6b7280' }}>{error}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #fef7ed 0%, #ffffff 50%, #fef3c7 100%)',
-      padding: '2rem 1rem'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* En-tête avec navigation */}
-        <div style={{ marginBottom: '2rem' }}>
-          <Link href={`/graces/${resolvedParams.id}`} style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            color: '#f59e0b',
-            textDecoration: 'none',
-            transition: 'color 0.2s'
-          }}>
-            <ArrowLeft style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-            Retour à la grâce
-          </Link>
-        </div>
-
-        {/* Formulaire */}
         <div style={{
           background: 'white',
           borderRadius: '1rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '2rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>✨</div>
+          <p style={{ color: '#78350F' }}>Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!grace) return null
+
+  return (
+    <div style={{
+      minHeight: '100vh',      padding: '2rem 1rem'
+    }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
           overflow: 'hidden'
         }}>
-          {/* En-tête de la carte */}
+          {/* En-tête jaune pastel */}
           <div style={{
-            background: 'linear-gradient(135deg, #f59e0b, #fb923c)',
-            padding: '1.5rem',
-            color: 'white'
+            background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+            padding: '2rem',
+            color: '#78350F'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ fontSize: '2.5rem', marginRight: '1rem' }}>✨</div>
-              <div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0 0 0.5rem 0' }}>
-                  Modifier la grâce
-                </h1>
-                <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: 0 }}>
-                  Ajustez les détails de cette grâce reçue
-                </p>
-              </div>
-            </div>
+            <Link href={`/graces/${resolvedParams.id}`} style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: '#78350F',
+              textDecoration: 'none',
+              marginBottom: '1rem',
+              fontSize: '0.875rem',
+              opacity: 0.8,
+              transition: 'opacity 0.2s'
+            }}>
+              <ArrowLeft size={16} />
+              Retour à la grâce
+            </Link>
+
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <Sparkles size={32} />
+              Modifier la grâce
+            </h1>
           </div>
 
           {/* Formulaire */}
           <form onSubmit={handleSubmit} style={{ padding: '2rem' }}>
             {error && (
               <div style={{
-                marginBottom: '1.5rem',
+                background: '#FEE2E2',
+                color: '#991B1B',
                 padding: '1rem',
-                background: '#fef2f2',
-                borderLeft: '4px solid #ef4444',
-                borderRadius: '0.75rem'
+                borderRadius: '0.5rem',
+                marginBottom: '1.5rem'
               }}>
-                <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>
+                {error}
               </div>
             )}
 
             {/* Texte de la grâce */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '0.5rem',
                 fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
+                color: '#78350F'
               }}>
-                <Tag style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#f59e0b' }} />
-                Quelle grâce avez-vous reçue ? *
+                Description de la grâce
               </label>
               <textarea
                 value={texte}
@@ -239,101 +202,89 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
                 rows={4}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.875rem',
-                  resize: 'none',
-                  transition: 'border-color 0.2s, box-shadow 0.2s',
-                  outline: 'none'
+                  padding: '0.75rem',
+                  border: '2px solid #FEF3C7',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#FFFEF7'
                 }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#f59e0b'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db'
-                  e.target.style.boxShadow = 'none'
-                }}
-                placeholder="Décrivez la grâce reçue..."
-                required
+                onFocus={(e) => e.target.style.borderColor = '#FDE68A'}
+                onBlur={(e) => e.target.style.borderColor = '#FEF3C7'}
               />
             </div>
 
-            {/* Date */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
-              }}>
-                <Calendar style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#f59e0b' }} />
-                Date *
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.875rem',
-                  transition: 'border-color 0.2s, box-shadow 0.2s',
-                  outline: 'none'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#f59e0b'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db'
-                  e.target.style.boxShadow = 'none'
-                }}
-                required
-              />
-            </div>
+            {/* Date et lieu */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#78350F'
+                }}>
+                  <Calendar size={20} />
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #FEF3C7',
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#FFFEF7'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#FDE68A'}
+                  onBlur={(e) => e.target.style.borderColor = '#FEF3C7'}
+                />
+              </div>
 
-            {/* Lieu */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
-              }}>
-                <MapPin style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#f59e0b' }} />
-                Lieu (optionnel)
-              </label>
-              <input
-                type="text"
-                value={lieu}
-                onChange={(e) => setLieu(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.875rem',
-                  transition: 'border-color 0.2s, box-shadow 0.2s',
-                  outline: 'none'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#f59e0b'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db'
-                  e.target.style.boxShadow = 'none'
-                }}
-                placeholder="Où cette grâce a-t-elle eu lieu ?"
-              />
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: '#78350F'
+                }}>
+                  <MapPin size={20} />
+                  Lieu (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={lieu}
+                  onChange={(e) => setLieu(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #FEF3C7',
+                    borderRadius: '0.5rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    backgroundColor: '#FFFEF7'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#FDE68A'}
+                  onBlur={(e) => e.target.style.borderColor = '#FEF3C7'}
+                  placeholder="Où étiez-vous ?"
+                />
+              </div>
             </div>
 
             {/* Tags */}
@@ -341,37 +292,74 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
               <label style={{
                 display: 'flex',
                 alignItems: 'center',
-                fontSize: '0.875rem',
+                gap: '0.5rem',
+                marginBottom: '0.5rem',
                 fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
+                color: '#78350F'
               }}>
-                <Tag style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#f59e0b' }} />
-                Étiquettes (séparées par des virgules)
+                <Tag size={20} />
+                Tags (optionnel)
               </label>
               <input
                 type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.875rem',
-                  transition: 'border-color 0.2s, box-shadow 0.2s',
-                  outline: 'none'
+                  padding: '0.75rem',
+                  border: '2px solid #FEF3C7',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#FFFEF7'
                 }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#f59e0b'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db'
-                  e.target.style.boxShadow = 'none'
-                }}
-                placeholder="guérison, famille, prière..."
+                onFocus={(e) => e.target.style.borderColor = '#FDE68A'}
+                onBlur={(e) => e.target.style.borderColor = '#FEF3C7'}
+                placeholder="Appuyez sur Entrée pour ajouter un tag"
               />
+              {tags.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
+                  marginTop: '0.75rem'
+                }}>
+                  {tags.map(tag => (
+                    <span
+                      key={tag}
+                      style={{
+                        background: '#FEF3C7',
+                        color: '#78350F',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '1rem',
+                        fontSize: '0.875rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#92400E',
+                          cursor: 'pointer',
+                          padding: '0',
+                          fontSize: '1.25rem',
+                          lineHeight: '1'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Visibilité */}
@@ -379,104 +367,100 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
               <label style={{
                 display: 'flex',
                 alignItems: 'center',
-                fontSize: '0.875rem',
+                gap: '0.5rem',
+                marginBottom: '0.5rem',
                 fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
+                color: '#78350F'
               }}>
-                <Eye style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#f59e0b' }} />
+                <Eye size={20} />
                 Visibilité
               </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    value="privee"
-                    checked={visibilite === 'privee'}
-                    onChange={(e) => setVisibilite(e.target.value)}
-                    style={{ width: '1rem', height: '1rem', marginRight: '0.75rem', accentColor: '#f59e0b' }}
-                  />
-                  <span style={{ color: '#374151' }}>Privée</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    value="anonyme"
-                    checked={visibilite === 'anonyme'}
-                    onChange={(e) => setVisibilite(e.target.value)}
-                    style={{ width: '1rem', height: '1rem', marginRight: '0.75rem', accentColor: '#f59e0b' }}
-                  />
-                  <span style={{ color: '#374151' }}>Anonyme</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    value="publique"
-                    checked={visibilite === 'publique'}
-                    onChange={(e) => setVisibilite(e.target.value)}
-                    style={{ width: '1rem', height: '1rem', marginRight: '0.75rem', accentColor: '#f59e0b' }}
-                  />
-                  <span style={{ color: '#374151' }}>Publique</span>
-                </label>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                {(['prive', 'anonyme', 'public'] as const).map(v => (
+                  <label
+                    key={v}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.5rem',
+                      background: visibilite === v ? '#FDE68A' : '#FEF3C7',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="visibilite"
+                      value={v}
+                      checked={visibilite === v}
+                      onChange={(e) => setVisibilite(e.target.value as typeof visibilite)}
+                      style={{ display: 'none' }}
+                    />
+                    <span style={{ color: '#78350F' }}>
+                      {v === 'prive' ? 'Privé' : v === 'anonyme' ? 'Anonyme' : 'Public'}
+                    </span>
+                  </label>
+                ))}
               </div>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#92400E',
+                marginTop: '0.5rem',
+                opacity: 0.8
+              }}>
+                {visibilite === 'prive' && 'Visible uniquement par vous'}
+                {visibilite === 'anonyme' && 'Peut être partagé sans votre nom'}
+                {visibilite === 'public' && 'Peut être partagé avec votre nom'}
+              </p>
             </div>
 
             {/* Boutons */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'flex-end'
+            }}>
               <Link
                 href={`/graces/${resolvedParams.id}`}
                 style={{
                   padding: '0.75rem 1.5rem',
-                  color: '#374151',
-                  background: '#f3f4f6',
-                  borderRadius: '0.75rem',
+                  borderRadius: '0.5rem',
+                  border: '2px solid #FDE68A',
+                  color: '#78350F',
                   textDecoration: 'none',
-                  transition: 'background 0.2s'
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  display: 'inline-block'
                 }}
-                onMouseEnter={(e) => e.target.style.background = '#e5e7eb'}
-                onMouseLeave={(e) => e.target.style.background = '#f3f4f6'}
               >
                 Annuler
               </Link>
+              
               <button
                 type="submit"
                 disabled={saving}
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
                   padding: '0.75rem 1.5rem',
-                  background: saving ? '#d1d5db' : '#f59e0b',
-                  color: 'white',
-                  borderRadius: '0.75rem',
+                  borderRadius: '0.5rem',
+                  background: '#FCD34D',
+                  color: '#78350F',
                   border: 'none',
+                  fontWeight: '500',
                   cursor: saving ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.2s',
-                  opacity: saving ? 0.5 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (!saving) e.target.style.background = '#d97706'
-                }}
-                onMouseLeave={(e) => {
-                  if (!saving) e.target.style.background = '#f59e0b'
+                  opacity: saving ? 0.7 : 1,
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
                 }}
               >
-                <Save style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
+                <Save size={20} />
                 {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Citation spirituelle */}
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <p style={{
-            color: '#f59e0b',
-            fontStyle: 'italic',
-            fontSize: '1.125rem',
-            margin: 0
-          }}>
-            "Que notre cœur se tourne vers le Seigneur" - Saint Augustin
-          </p>
         </div>
       </div>
     </div>

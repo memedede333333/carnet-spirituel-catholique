@@ -1,88 +1,135 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/app/lib/supabase'
-import { useRouter } from 'next/navigation'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { HandHeart, Plus, Calendar, User, MessageCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/app/lib/supabase'
+import { Plus, Calendar, User, Heart, Users, HandHeart, Sparkles, Search, Filter, ArrowLeft, Clock, CheckCircle } from 'lucide-react'
 
 interface Priere {
   id: string
   type: 'guerison' | 'freres' | 'intercession'
   personne_prenom: string
-  personne_nom?: string
+  personne_nom: string | null
   date: string
   sujet: string
+  sujet_detail: string | null
   nombre_fois: number
-  notes?: string
+  notes: string | null
+  visibilite: string
   created_at: string
+  suivis_priere?: any[]
+}
+
+const typeColors = {
+  guerison: {
+    bg: '#FEE2E2',
+    border: '#FECACA',
+    text: '#991B1B',
+    light: '#FEF2F2'
+  },
+  freres: {
+    bg: '#E0E7FF',
+    border: '#C7D2FE',
+    text: '#3730A3',
+    light: '#EEF2FF'
+  },
+  intercession: {
+    bg: '#D1FAE5',
+    border: '#A7F3D0',
+    text: '#064E3B',
+    light: '#ECFDF5'
+  }
+}
+
+const typeLabels = {
+  guerison: { label: 'Guérison', icon: Heart },
+  freres: { label: 'Prière des frères', icon: Users },
+  intercession: { label: 'Intercession', icon: HandHeart }
 }
 
 export default function PrieresPage() {
   const router = useRouter()
   const [prieres, setPrieres] = useState<Priere[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('')
+  const [selectedType, setSelectedType] = useState<string | null>(null)
 
   useEffect(() => {
-    loadPrieres()
+    fetchPrieres()
   }, [])
 
-  const loadPrieres = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      router.push('/login')
-      return
-    }
+  const fetchPrieres = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
 
-    const { data, error } = await supabase
-      .from('prieres')
-      .select('*')
-      .order('date', { ascending: false })
+      const { data, error } = await supabase
+        .from('prieres')
+        .select(`
+          *,
+          suivis_priere (
+            id,
+            date,
+            evolution
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
 
-    if (error) {
-      console.error('Erreur:', error)
-    } else {
+      if (error) throw error
       setPrieres(data || [])
-    }
-    setLoading(false)
-  }
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'guerison': return '#ef4444'
-      case 'freres': return '#3b82f6'
-      case 'intercession': return '#8b5cf6'
-      default: return '#6366f1'
+    } catch (error) {
+      console.error('Erreur:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'guerison': return 'Guérison'
-      case 'freres': return 'Prière des frères'
-      case 'intercession': return 'Intercession'
-      default: return type
-    }
+  const filteredPrieres = prieres.filter(priere => {
+    const matchesSearch = 
+      priere.personne_prenom.toLowerCase().includes(filter.toLowerCase()) ||
+      priere.personne_nom?.toLowerCase().includes(filter.toLowerCase()) ||
+      priere.sujet.toLowerCase().includes(filter.toLowerCase()) ||
+      priere.sujet_detail?.toLowerCase().includes(filter.toLowerCase())
+    
+    const matchesType = !selectedType || priere.type === selectedType
+    
+    return matchesSearch && matchesType
+  })
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  const getLatestEvolution = (suivis: any[]) => {
+    if (!suivis || suivis.length === 0) return null
+    const latest = suivis.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+    return latest.evolution
   }
 
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 50%, #e0e7ff 100%)',
-        padding: '2rem 1rem'
+        minHeight: '100vh',        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <p style={{ textAlign: 'center', color: '#6b7280' }}>Chargement des prières...</p>
-          </div>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '2rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>🙏</div>
+          <p style={{ color: '#1E3A8A' }}>Chargement des prières...</p>
         </div>
       </div>
     )
@@ -90,102 +137,217 @@ export default function PrieresPage() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 50%, #e0e7ff 100%)',
-      padding: '2rem 1rem'
+      minHeight: '100vh',      padding: '2rem 1rem'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* En-tête */}
+        {/* En-tête avec fond bleu pastel */}
         <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          background: 'linear-gradient(135deg, #DBEAFE, #BFDBFE)',
+          borderRadius: '1rem',
+          padding: '2rem',
           marginBottom: '2rem',
-          flexWrap: 'wrap',
-          gap: '1rem'
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-              borderRadius: '1rem',
-              padding: '1rem',
-              marginRight: '1rem'
-            }}>
-              <HandHeart style={{ width: '2rem', height: '2rem', color: 'white' }} />
-            </div>
+          <Link href="/dashboard" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#1E3A8A',
+            textDecoration: 'none',
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
+            opacity: 0.8,
+            transition: 'opacity 0.2s'
+          }}>
+            <ArrowLeft size={16} />
+            Retour au tableau de bord
+          </Link>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem'
+          }}>
             <div>
               <h1 style={{
-                fontSize: '2.5rem',
+                fontSize: '2rem',
                 fontWeight: 'bold',
-                color: '#1e293b',
-                margin: '0 0 0.5rem 0'
+                color: '#1E3A8A',
+                marginBottom: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
-                Prières
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{
+                    background: 'white',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    marginRight: '1rem'
+                  }}>
+                    🙏
+                  </div>
+                  Mes Prières
+                </div>
               </h1>
-              <p style={{ color: '#64748b', margin: 0, fontSize: '1.125rem' }}>
-                Suivez vos intentions de prière et leurs fruits
+              <p style={{ color: '#1E40AF', opacity: 0.9 }}>
+                {prieres.length} intention{prieres.length > 1 ? 's' : ''} de prière
               </p>
             </div>
-          </div>
-          <Link
-            href="/prieres/nouvelle"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
+
+            <Link href="/prieres/nouvelle" style={{
+              background: '#93C5FD',
+              color: '#1E3A8A',
               padding: '0.75rem 1.5rem',
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-              color: 'white',
-              borderRadius: '0.75rem',
+              borderRadius: '0.5rem',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'transform 0.2s',
-              boxShadow: '0 4px 6px rgba(99, 102, 241, 0.3)'
-            }}
-            onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
-            onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-          >
-            <Plus style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-            Nouvelle prière
-          </Link>
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.2s'
+            }}>
+              <Plus size={20} />
+              Nouvelle prière
+            </Link>
+          </div>
+        </div>
+
+        {/* Barre de recherche et filtres */}
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '1.5rem',
+          marginBottom: '2rem',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
+            <div style={{
+              flex: 1,
+              minWidth: '250px',
+              position: 'relative'
+            }}>
+              <Search size={20} style={{
+                position: 'absolute',
+                left: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#1E40AF',
+                opacity: 0.5
+              }} />
+              <input
+                type="text"
+                placeholder="Rechercher une personne ou un sujet..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem 0.75rem 3rem',
+                  border: '2px solid #DBEAFE',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#F0F9FF'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#BFDBFE'}
+                onBlur={(e) => e.target.style.borderColor = '#DBEAFE'}
+              />
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              alignItems: 'center'
+            }}>
+              <Filter size={16} style={{ color: '#1E40AF', opacity: 0.7 }} />
+              <button
+                onClick={() => setSelectedType(null)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '2rem',
+                  border: 'none',
+                  background: !selectedType ? '#93C5FD' : '#DBEAFE',
+                  color: '#1E3A8A',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Tous
+              </button>
+              {Object.entries(typeLabels).map(([type, config]) => {
+                const Icon = config.icon
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedType(type)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      borderRadius: '2rem',
+                      border: 'none',
+                      background: selectedType === type ? typeColors[type as keyof typeof typeColors].bg : '#F3F4F6',
+                      color: selectedType === type ? typeColors[type as keyof typeof typeColors].text : '#6B7280',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}
+                  >
+                    <Icon size={14} />
+                    {config.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Liste des prières */}
-        {prieres.length === 0 ? (
+        {filteredPrieres.length === 0 ? (
           <div style={{
             background: 'white',
             borderRadius: '1rem',
-            padding: '3rem 2rem',
+            padding: '3rem',
             textAlign: 'center',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
           }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🙏</div>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              color: '#1e293b',
-              marginBottom: '0.5rem'
-            }}>
-              Aucune prière enregistrée
-            </h2>
-            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-              Commencez par ajouter votre première intention de prière
+            <HandHeart size={48} style={{ color: '#93C5FD', margin: '0 auto 1rem' }} />
+            <p style={{ color: '#1E40AF', fontSize: '1.125rem' }}>
+              {filter || selectedType 
+                ? 'Aucune prière ne correspond à votre recherche'
+                : 'Aucune prière enregistrée pour le moment'}
             </p>
-            <Link
-              href="/prieres/nouvelle"
-              style={{
+            {!filter && !selectedType && (
+              <Link href="/prieres/nouvelle" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                padding: '0.75rem 1.5rem',
-                background: '#6366f1',
-                color: 'white',
-                borderRadius: '0.75rem',
+                gap: '0.5rem',
+                marginTop: '1rem',
+                color: '#1E3A8A',
                 textDecoration: 'none',
                 fontWeight: '500'
-              }}
-            >
-              <Plus style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-              Ajouter une prière
-            </Link>
+              }}>
+                <Plus size={20} />
+                Ajouter votre première prière
+              </Link>
+            )}
           </div>
         ) : (
           <div style={{
@@ -193,115 +355,162 @@ export default function PrieresPage() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
             gap: '1.5rem'
           }}>
-            {prieres.map((priere) => (
-              <Link
-                key={priere.id}
-                href={`/prieres/${priere.id}`}
-                style={{
-                  background: 'white',
-                  borderRadius: '1rem',
-                  padding: '1.5rem',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  transition: 'all 0.2s',
-                  border: '1px solid rgba(99, 102, 241, 0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)'
-                  e.target.style.boxShadow = '0 8px 15px rgba(0, 0, 0, 0.15)'
-                  e.target.style.borderColor = 'rgba(99, 102, 241, 0.3)'
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)'
-                  e.target.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  e.target.style.borderColor = 'rgba(99, 102, 241, 0.1)'
-                }}
-              >
-                {/* En-tête de la carte */}
-                <div style={{ marginBottom: '1rem' }}>
+            {filteredPrieres.map((priere, index) => {
+              const TypeIcon = typeLabels[priere.type].icon
+              const colors = typeColors[priere.type]
+              const evolution = getLatestEvolution(priere.suivis_priere || [])
+              
+              return (
+                <Link
+                  key={priere.id}
+                  href={`/prieres/${priere.id}`}
+                  style={{
+                    background: 'white',
+                    borderRadius: '1rem',
+                    overflow: 'hidden',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s',
+                    display: 'block',
+                    border: '2px solid transparent',
+                    animation: `fadeIn 0.6s ease-out ${index * 0.1}s both`
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(147, 197, 253, 0.3)'
+                    e.currentTarget.style.borderColor = colors.border
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'
+                    e.currentTarget.style.borderColor = 'transparent'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
+                >
+                  {/* En-tête coloré selon le type */}
                   <div style={{
-                    display: 'inline-block',
-                    padding: '0.25rem 0.75rem',
-                    background: getTypeColor(priere.type),
-                    color: 'white',
-                    borderRadius: '9999px',
-                    fontSize: '0.75rem',
-                    fontWeight: '500',
-                    marginBottom: '0.75rem'
+                    background: colors.bg,
+                    borderBottom: `2px solid ${colors.border}`,
+                    padding: '1rem 1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
                   }}>
-                    {getTypeLabel(priere.type)}
-                  </div>
-                  <h3 style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: '#1e293b',
-                    margin: 0
-                  }}>
-                    {priere.personne_prenom}{priere.personne_nom ? ` ${priere.personne_nom}` : ''}
-                  </h3>
-                </div>
-
-                {/* Contenu */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <p style={{
-                    color: '#475569',
-                    lineHeight: '1.5',
-                    margin: '0 0 0.75rem 0'
-                  }}>
-                    {priere.sujet}
-                  </p>
-                  
-                  {priere.notes && (
-                    <p style={{
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      fontStyle: 'italic',
-                      margin: 0
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem'
                     }}>
-                      {priere.notes.length > 100 
-                        ? `${priere.notes.substring(0, 100)}...` 
-                        : priere.notes
-                      }
-                    </p>
-                  )}
-                </div>
+                      <div style={{
+                        background: colors.light,
+                        borderRadius: '0.5rem',
+                        padding: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <TypeIcon size={20} style={{ color: colors.text }} />
+                      </div>
+                      <div>
+                        <p style={{
+                          fontWeight: '600',
+                          color: colors.text,
+                          fontSize: '0.875rem'
+                        }}>
+                          {typeLabels[priere.type].label}
+                        </p>
+                        <p style={{
+                          fontSize: '1.125rem',
+                          fontWeight: 'bold',
+                          color: '#1F2937'
+                        }}>
+                          {priere.personne_prenom} {priere.personne_nom || ''}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {evolution && (
+                      <div style={{
+                        background: evolution === 'gueri' || evolution === 'exauce' ? '#D1FAE5' : colors.light,
+                        color: evolution === 'gueri' || evolution === 'exauce' ? '#064E3B' : colors.text,
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '1rem',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}>
+                        {(evolution === 'gueri' || evolution === 'exauce') && <CheckCircle size={12} />}
+                        {evolution === 'amelioration' ? 'En amélioration' :
+                         evolution === 'stable' ? 'Stable' :
+                         evolution === 'gueri' ? 'Guéri' :
+                         evolution === 'exauce' ? 'Exaucée' :
+                         evolution === 'en_cours' ? 'En cours' : evolution}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Métadonnées */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingTop: '1rem',
-                  borderTop: '1px solid #e2e8f0',
-                  fontSize: '0.875rem',
-                  color: '#64748b'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Calendar style={{ width: '1rem', height: '1rem', marginRight: '0.25rem' }} />
-                    {format(new Date(priere.date), 'dd MMM yyyy', { locale: fr })}
+                  {/* Contenu */}
+                  <div style={{ padding: '1.5rem' }}>
+                    <p style={{
+                      fontSize: '1rem',
+                      color: '#4B5563',
+                      marginBottom: '1rem',
+                      lineHeight: '1.5'
+                    }}>
+                      {priere.sujet}
+                      {priere.sujet_detail && (
+                        <span style={{ color: '#6B7280' }}> - {priere.sujet_detail}</span>
+                      )}
+                    </p>
+
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.875rem',
+                      color: '#6B7280'
+                    }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Calendar size={16} />
+                        {formatDate(priere.date)}
+                      </span>
+                      
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem'
+                      }}>
+                        {priere.nombre_fois > 0 && (
+                          <span style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            color: colors.text
+                          }}>
+                            <Sparkles size={16} />
+                            {priere.nombre_fois} fois
+                          </span>
+                        )}
+                        {priere.suivis_priere && priere.suivis_priere.length > 0 && (
+                          <span style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}>
+                            <Clock size={16} />
+                            {priere.suivis_priere.length} suivi{priere.suivis_priere.length > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <HandHeart style={{ width: '1rem', height: '1rem', marginRight: '0.25rem' }} />
-                    {priere.nombre_fois} fois
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         )}
-
-        {/* Citation spirituelle */}
-        <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-          <p style={{
-            color: '#6366f1',
-            fontStyle: 'italic',
-            fontSize: '1.125rem',
-            margin: 0
-          }}>
-            "Priez sans cesse" - 1 Thessaloniciens 5:17
-          </p>
-        </div>
       </div>
     </div>
   )

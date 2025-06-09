@@ -56,8 +56,7 @@ export default function DashboardPage() {
       description: 'Contemplez le fil rouge de l\'action de Dieu',
       color: 'from-purple-50 to-indigo-50',
       borderColor: 'border-purple-200',
-      textColor: 'text-purple-700',
-      disabled: true
+      textColor: 'text-purple-700'
     }
   ]
 
@@ -66,7 +65,7 @@ export default function DashboardPage() {
       <div className="dashboard-header fade-in">
         <h1 className="dashboard-title">Carnet de grâces & de missions</h1>
         <p className="dashboard-subtitle">
-          Contemplez l\'action de Dieu dans votre vie
+          Contemplez l'action de Dieu dans votre vie
         </p>
       </div>
 
@@ -74,8 +73,8 @@ export default function DashboardPage() {
         {modules.map((module, index) => (
           <Link
             key={module.href}
-            href={module.disabled ? '#' : module.href}
-            className={`module-card fade-in ${module.disabled ? 'disabled' : ''}`}
+            href={module.href}
+            className="module-card fade-in"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className={`module-gradient ${module.color}`}>
@@ -90,9 +89,6 @@ export default function DashboardPage() {
               <p className="module-description">
                 {module.description}
               </p>
-              {module.disabled && (
-                <span className="module-badge">Bientôt disponible</span>
-              )}
             </div>
           </Link>
         ))}

@@ -1,0 +1,10 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(app)/profile/page": "app/(app)/profile/page.js",
+  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
+  "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
+  "/(app)/profile/email/page": "app/(app)/profile/email/page.js",
+  "/(app)/profile/password/page": "app/(app)/profile/password/page.js",
+  "/(app)/profile/security/page": "app/(app)/profile/security/page.js"
+}

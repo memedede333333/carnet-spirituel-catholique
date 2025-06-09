@@ -1,30 +1,72 @@
 'use client'
-import { useState, useEffect, use } from 'react'
-import { supabase } from '@/app/lib/supabase'
-import Link from 'next/link'
-import { ArrowLeft, Save, Calendar, MessageSquare, TrendingUp, Plus } from 'lucide-react'
+
+import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { supabase } from '@/app/lib/supabase'
+import { Calendar, TrendingUp, MessageSquare, ArrowLeft, Plus, Heart, Users, HandHeart } from 'lucide-react'
 
 interface Priere {
   id: string
   type: 'guerison' | 'freres' | 'intercession'
   personne_prenom: string
-  personne_nom?: string
+  personne_nom: string | null
   sujet: string
 }
 
+const typeColors = {
+  guerison: {
+    bg: '#FEE2E2',
+    border: '#FECACA',
+    text: '#991B1B',
+    light: '#FEF2F2'
+  },
+  freres: {
+    bg: '#E0E7FF',
+    border: '#C7D2FE',
+    text: '#3730A3',
+    light: '#EEF2FF'
+  },
+  intercession: {
+    bg: '#D1FAE5',
+    border: '#A7F3D0',
+    text: '#064E3B',
+    light: '#ECFDF5'
+  }
+}
+
+const typeLabels = {
+  guerison: { label: 'Guérison', icon: Heart },
+  freres: { label: 'Prière des frères', icon: Users },
+  intercession: { label: 'Intercession', icon: HandHeart }
+}
+
+const evolutionOptions = [
+  { value: 'amelioration', label: 'Amélioration', description: 'Les choses s\'améliorent progressivement' },
+  { value: 'stable', label: 'Stable', description: 'La situation reste inchangée' },
+  { value: 'aggravation', label: 'Aggravation', description: 'La situation se dégrade' },
+  { value: 'gueri', label: 'Guéri', description: 'Guérison complète, Dieu soit loué !' },
+  { value: 'guerison_partielle', label: 'Guérison partielle', description: 'Des progrès significatifs' },
+  { value: 'paix', label: 'Paix reçue', description: 'Une paix intérieure malgré la situation' },
+  { value: 'conversion', label: 'Conversion', description: 'Un changement de cœur s\'est opéré' },
+  { value: 'reconciliation', label: 'Réconciliation', description: 'Les relations ont été restaurées' },
+  { value: 'reponse_claire', label: 'Réponse claire', description: 'Dieu a répondu clairement' },
+  { value: 'signe_encourageant', label: 'Signe encourageant', description: 'Des signes positifs apparaissent' },
+  { value: 'dans_mystere', label: 'Dans le mystère', description: 'Nous restons dans la confiance' },
+  { value: 'en_cours', label: 'En cours', description: 'La prière continue' }
+]
+
 export default function SuiviPrierePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
-  const [priere, setPriere] = useState<Priere | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
   const router = useRouter()
-
+  const [priere, setPriere] = useState<Priere | null>(null)
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [notes, setNotes] = useState('')
   const [evolution, setEvolution] = useState('')
   const [nouvellePriere, setNouvellePriere] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetchPriere()
@@ -32,24 +74,17 @@ export default function SuiviPrierePage({ params }: { params: Promise<{ id: stri
 
   const fetchPriere = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
       const { data, error } = await supabase
         .from('prieres')
-        .select('id, type, personne_prenom, personne_nom, sujet')
+        .select('*')
         .eq('id', resolvedParams.id)
-        .eq('user_id', user.id)
         .single()
 
       if (error) throw error
       setPriere(data)
     } catch (error) {
       console.error('Erreur:', error)
-      setError('Prière non trouvée')
+      router.push('/prieres')
     } finally {
       setLoading(false)
     }
@@ -57,8 +92,9 @@ export default function SuiviPrierePage({ params }: { params: Promise<{ id: stri
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
     if (!notes.trim()) {
-      setError('Les notes sont requises')
+      setError('Veuillez décrire le suivi')
       return
     }
 
@@ -66,492 +102,346 @@ export default function SuiviPrierePage({ params }: { params: Promise<{ id: stri
     setError('')
 
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Non authentifié')
+
       const { error } = await supabase
         .from('suivis_priere')
         .insert({
           priere_id: resolvedParams.id,
-          date: date,
+          date,
           notes: notes.trim(),
-          evolution: evolution === '' ? null : evolution,
+          evolution: evolution || null,
           nouvelle_priere: nouvellePriere
         })
 
       if (error) throw error
+
       router.push(`/prieres/${resolvedParams.id}`)
     } catch (error) {
       console.error('Erreur:', error)
-      setError('Erreur lors de ajout du suivi')
+      setError('Une erreur est survenue lors de l\'enregistrement')
     } finally {
       setSaving(false)
     }
   }
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'guerison': return '#ef4444'
-      case 'freres': return '#3b82f6'
-      case 'intercession': return '#8b5cf6'
-      default: return '#6366f1'
-    }
-  }
-
-  const evolutionOptions = [
-    { value: '', label: '💭 Aucune évolution particulière', icon: '💭' },
-    { value: 'amelioration', label: '📈 Amélioration notable', icon: '📈' },
-    { value: 'gueri', label: '✨ Guérison complète', icon: '✨' },
-    { value: 'guerison_partielle', label: '🌱 Guérison partielle', icon: '🌱' },
-    { value: 'stable', label: '⚖️ Situation stable', icon: '⚖️' },
-    { value: 'paix', label: '🕊️ Paix profonde reçue', icon: '🕊️' },
-    { value: 'conversion', label: '💛 Conversion du cœur', icon: '💛' },
-    { value: 'reconciliation', label: '🤝 Réconciliation', icon: '🤝' },
-    { value: 'reponse_claire', label: '💡 Réponse claire reçue', icon: '💡' },
-    { value: 'signe_encourageant', label: '🌟 Signe encourageant', icon: '🌟' },
-    { value: 'en_cours', label: '⏳ Évolution en cours', icon: '⏳' },
-    { value: 'aggravation', label: '📉 Aggravation temporaire', icon: '📉' },
-    { value: 'dans_mystere', label: '🙏 Dans le mystère de Dieu', icon: '🙏' }
-  ]
-
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 50%, #e0e7ff 100%)',
-        padding: '2rem 1rem'
+        minHeight: '100vh',        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <p style={{ textAlign: 'center', color: '#6b7280' }}>Chargement...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error && !priere) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 50%, #e0e7ff 100%)',
-        padding: '2rem 1rem'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Link href="/prieres" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            color: '#6366f1',
-            textDecoration: 'none',
-            marginBottom: '1.5rem'
-          }}>
-            <ArrowLeft style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-            Retour aux prières
-          </Link>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            textAlign: 'center',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🙏</div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-              Prière introuvable
-            </h1>
-            <p style={{ color: '#6b7280' }}>{error}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 50%, #e0e7ff 100%)',
-      padding: '2rem 1rem'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <Link href={`/prieres/${resolvedParams.id}`} style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            color: '#6366f1',
-            textDecoration: 'none',
-            transition: 'color 0.2s'
-          }}>
-            <ArrowLeft style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-            Retour à la prière
-          </Link>
-        </div>
-
-        {priere && (
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '1.5rem',
-            marginBottom: '2rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            border: '1px solid rgba(99, 102, 241, 0.1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <div style={{
-                padding: '0.25rem 0.75rem',
-                background: getTypeColor(priere.type),
-                color: 'white',
-                borderRadius: '9999px',
-                fontSize: '0.75rem',
-                fontWeight: '500',
-                marginRight: '1rem'
-              }}>
-                {priere.type}
-              </div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
-                Prière pour {priere.personne_prenom}{priere.personne_nom ? ` ${priere.personne_nom}` : ''}
-              </h2>
-            </div>
-            <p style={{ color: '#6b7280', margin: 0, fontSize: '0.95rem' }}>{priere.sujet}</p>
-          </div>
-        )}
-
         <div style={{
           background: 'white',
           borderRadius: '1rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '2rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>🙏</div>
+          <p style={{ color: '#1E3A8A' }}>Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!priere) return null
+
+  const TypeIcon = typeLabels[priere.type].icon
+  const colors = typeColors[priere.type]
+
+  return (
+    <div style={{
+      minHeight: '100vh',      padding: '2rem 1rem'
+    }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
           overflow: 'hidden'
         }}>
+          {/* En-tête avec la couleur du type */}
           <div style={{
-            background: 'linear-gradient(135deg, #10b981, #059669)',
-            padding: '1.5rem',
-            color: 'white'
+            background: colors.bg,
+            borderBottom: `3px solid ${colors.border}`,
+            padding: '2rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ fontSize: '2.5rem', marginRight: '1rem' }}>📝</div>
+            <Link href={`/prieres/${resolvedParams.id}`} style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: colors.text,
+              textDecoration: 'none',
+              marginBottom: '1rem',
+              fontSize: '0.875rem',
+              opacity: 0.8,
+              transition: 'opacity 0.2s'
+            }}>
+              <ArrowLeft size={16} />
+              Retour à la prière
+            </Link>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <div style={{
+                background: colors.light,
+                borderRadius: '0.75rem',
+                padding: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <TypeIcon size={28} style={{ color: colors.text }} />
+              </div>
               <div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0 0 0.5rem 0' }}>
-                  Nouveau suivi
+                <h1 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
+                  color: '#1F2937',
+                  marginBottom: '0.25rem'
+                }}>
+                  Ajouter un suivi
                 </h1>
-                <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: 0 }}>
-                  Notez l'évolution de cette intention de prière
+                <p style={{
+                  color: '#4B5563'
+                }}>
+                  {priere.personne_prenom} {priere.personne_nom || ''} - {priere.sujet}
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Formulaire */}
           <form onSubmit={handleSubmit} style={{ padding: '2rem' }}>
             {error && (
               <div style={{
-                marginBottom: '1.5rem',
+                background: '#FEE2E2',
+                color: '#991B1B',
                 padding: '1rem',
-                background: '#fef2f2',
-                borderLeft: '4px solid #ef4444',
-                borderRadius: '0.75rem'
+                borderRadius: '0.5rem',
+                marginBottom: '1.5rem'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <div style={{ color: '#ef4444', marginRight: '0.75rem' }}>⚠️</div>
-                  <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>
-                </div>
+                {error}
               </div>
             )}
 
+            {/* Date du suivi */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{
                 display: 'flex',
                 alignItems: 'center',
-                fontSize: '0.875rem',
+                gap: '0.5rem',
+                marginBottom: '0.5rem',
                 fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
+                color: '#1E3A8A'
               }}>
-                <Calendar style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#10b981' }} />
-                Date du suivi *
+                <Calendar size={20} />
+                Date du suivi
               </label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                required
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.875rem',
-                  transition: 'border-color 0.2s, box-shadow 0.2s',
-                  outline: 'none'
+                  padding: '0.75rem',
+                  border: '2px solid #DBEAFE',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#F0F9FF'
                 }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#10b981'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db'
-                  e.target.style.boxShadow = 'none'
-                }}
+                onFocus={(e) => e.target.style.borderColor = '#BFDBFE'}
+                onBlur={(e) => e.target.style.borderColor = '#DBEAFE'}
               />
             </div>
 
+            {/* Notes de suivi */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{
                 display: 'flex',
                 alignItems: 'center',
-                fontSize: '0.875rem',
+                gap: '0.5rem',
+                marginBottom: '0.5rem',
                 fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
+                color: '#1E3A8A'
               }}>
-                <MessageSquare style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#10b981' }} />
-                Notes du suivi *
+                <MessageSquare size={20} />
+                Notes de suivi
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                required
-                rows={5}
+                placeholder="Comment la situation a-t-elle évolué ? Y a-t-il des signes de l'action de Dieu ?"
+                rows={4}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.875rem',
-                  resize: 'none',
-                  transition: 'border-color 0.2s, box-shadow 0.2s',
-                  outline: 'none'
+                  padding: '0.75rem',
+                  border: '2px solid #DBEAFE',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  backgroundColor: '#F0F9FF'
                 }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#10b981'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db'
-                  e.target.style.boxShadow = 'none'
-                }}
-                placeholder="Décrivez en détail ce qui s'est passé : amélioration physique, paix intérieure, signe reçu, réponse à la prière, changement de situation, grâce particulière..."
+                onFocus={(e) => e.target.style.borderColor = '#BFDBFE'}
+                onBlur={(e) => e.target.style.borderColor = '#DBEAFE'}
               />
             </div>
 
+            {/* Évolution */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{
                 display: 'flex',
                 alignItems: 'center',
-                fontSize: '0.875rem',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
                 fontWeight: '500',
-                color: '#374151',
-                marginBottom: '0.75rem'
+                color: '#1E3A8A'
               }}>
-                <TrendingUp style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#10b981' }} />
-                Évolution spirituelle observée
-              </label>
-              <select
-                value={evolution}
-                onChange={(e) => setEvolution(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.875rem',
-                  transition: 'border-color 0.2s, box-shadow 0.2s',
-                  outline: 'none',
-                  background: 'white'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#10b981'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db'
-                  e.target.style.boxShadow = 'none'
-                }}
-              >
-                {evolutionOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ marginBottom: '2rem' }}>
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                color: '#374151',
-                marginBottom: '1rem'
-              }}>
-                <Plus style={{ width: '1rem', height: '1rem', marginRight: '0.5rem', color: '#10b981' }} />
-                Nature du suivi
+                <TrendingUp size={20} />
+                Évolution (optionnel)
               </label>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '1rem'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                gap: '0.75rem'
               }}>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '1rem',
-                  border: `2px solid ${!nouvellePriere ? '#10b981' : '#e5e7eb'}`,
-                  borderRadius: '0.75rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  background: !nouvellePriere ? 'rgba(16, 185, 129, 0.1)' : 'white'
-                }}>
-                  <input
-                    type="radio"
-                    checked={!nouvellePriere}
-                    onChange={() => setNouvellePriere(false)}
-                    style={{ display: 'none' }}
-                  />
-                  <div style={{
-                    width: '1rem',
-                    height: '1rem',
-                    borderRadius: '50%',
-                    border: '2px solid #10b981',
-                    background: !nouvellePriere ? '#10b981' : 'white',
-                    marginRight: '0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {!nouvellePriere && (
-                      <div style={{
-                        width: '0.5rem',
-                        height: '0.5rem',
-                        borderRadius: '50%',
-                        background: 'white'
-                      }} />
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
-                      📝 Suivi d'évolution
+                {evolutionOptions.map((option) => (
+                  <label
+                    key={option.value}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      border: `2px solid ${evolution === option.value ? '#93C5FD' : '#E5E7EB'}`,
+                      background: evolution === option.value ? '#F0F9FF' : 'white',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      <input
+                        type="radio"
+                        name="evolution"
+                        value={option.value}
+                        checked={evolution === option.value}
+                        onChange={(e) => setEvolution(e.target.value)}
+                        style={{ marginRight: '0.25rem' }}
+                      />
+                      <span style={{
+                        fontWeight: '500',
+                        color: evolution === option.value ? '#1E3A8A' : '#1F2937'
+                      }}>
+                        {option.label}
+                      </span>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                      Point d'étape sur la même intention
-                    </div>
-                  </div>
-                </label>
-
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '1rem',
-                  border: `2px solid ${nouvellePriere ? '#3b82f6' : '#e5e7eb'}`,
-                  borderRadius: '0.75rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  background: nouvellePriere ? 'rgba(59, 130, 246, 0.1)' : 'white'
-                }}>
-                  <input
-                    type="radio"
-                    checked={nouvellePriere}
-                    onChange={() => setNouvellePriere(true)}
-                    style={{ display: 'none' }}
-                  />
-                  <div style={{
-                    width: '1rem',
-                    height: '1rem',
-                    borderRadius: '50%',
-                    border: '2px solid #3b82f6',
-                    background: nouvellePriere ? '#3b82f6' : 'white',
-                    marginRight: '0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {nouvellePriere && (
-                      <div style={{
-                        width: '0.5rem',
-                        height: '0.5rem',
-                        borderRadius: '50%',
-                        background: 'white'
-                      }} />
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: '500', color: '#374151', marginBottom: '0.25rem' }}>
-                      🆕 Nouvelle intention
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                      Nouvelle demande de prière
-                    </div>
-                  </div>
-                </label>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: '#6B7280',
+                      marginTop: '0.25rem',
+                      marginLeft: '1.5rem'
+                    }}>
+                      {option.description}
+                    </p>
+                  </label>
+                ))}
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', flexWrap: 'wrap' }}>
+            {/* Nouvelle prière */}
+            <div style={{
+              marginBottom: '2rem',
+              background: '#FEF3C7',
+              borderRadius: '0.75rem',
+              padding: '1rem'
+            }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                cursor: 'pointer'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={nouvellePriere}
+                  onChange={(e) => setNouvellePriere(e.target.checked)}
+                  style={{ marginRight: '0.25rem' }}
+                />
+                <span style={{
+                  fontWeight: '500',
+                  color: '#78350F'
+                }}>
+                  Une nouvelle prière a été faite
+                </span>
+              </label>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#92400E',
+                marginTop: '0.5rem',
+                marginLeft: '1.75rem'
+              }}>
+                Cochez si vous avez prié à nouveau pour cette intention lors de ce suivi
+              </p>
+            </div>
+
+            {/* Boutons */}
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'flex-end'
+            }}>
               <Link
                 href={`/prieres/${resolvedParams.id}`}
                 style={{
                   padding: '0.75rem 1.5rem',
-                  color: '#374151',
-                  background: '#f3f4f6',
-                  borderRadius: '0.75rem',
+                  borderRadius: '0.5rem',
+                  border: '2px solid #BFDBFE',
+                  color: '#1E3A8A',
                   textDecoration: 'none',
-                  transition: 'background 0.2s',
-                  fontWeight: '500'
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  display: 'inline-block'
                 }}
-                onMouseEnter={(e) => e.target.style.background = '#e5e7eb'}
-                onMouseLeave={(e) => e.target.style.background = '#f3f4f6'}
               >
                 Annuler
               </Link>
+              
               <button
                 type="submit"
                 disabled={saving}
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
                   padding: '0.75rem 1.5rem',
-                  background: saving ? '#d1d5db' : '#10b981',
-                  color: 'white',
-                  borderRadius: '0.75rem',
+                  borderRadius: '0.5rem',
+                  background: '#93C5FD',
+                  color: '#1E3A8A',
                   border: 'none',
+                  fontWeight: '500',
                   cursor: saving ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.2s',
-                  opacity: saving ? 0.5 : 1,
-                  fontWeight: '500'
-                }}
-                onMouseEnter={(e) => {
-                  if (!saving) e.target.style.background = '#059669'
-                }}
-                onMouseLeave={(e) => {
-                  if (!saving) e.target.style.background = '#10b981'
+                  opacity: saving ? 0.7 : 1,
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
                 }}
               >
-                <Save style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-                {saving ? 'Enregistrement...' : 'Enregistrer le suivi'}
+                <Plus size={20} />
+                {saving ? 'Enregistrement...' : 'Ajouter le suivi'}
               </button>
             </div>
           </form>
-        </div>
-
-        <div style={{
-          marginTop: '2rem',
-          background: 'rgba(16, 185, 129, 0.1)',
-          borderRadius: '1rem',
-          padding: '1.5rem',
-          borderLeft: '4px solid #10b981'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'start' }}>
-            <div style={{ fontSize: '1.5rem', marginRight: '1rem' }}>🌱</div>
-            <div>
-              <h3 style={{ fontWeight: '600', color: '#065f46', marginBottom: '0.5rem' }}>
-                Conseil spirituel
-              </h3>
-              <p style={{ color: '#065f46', lineHeight: '1.6', margin: 0 }}>
-                "Persévérez dans la prière" (Col 4:2). Chaque suivi nous aide à reconnaître l'action de Dieu 
-                et renforce notre foi dans la fidélité du Seigneur.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

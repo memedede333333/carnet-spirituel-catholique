@@ -1,0 +1,44 @@
+{
+  "graces": {
+    "primary": "#FEF3C7",
+    "secondary": "#FDE68A", 
+    "accent": "#FCD34D",
+    "text": "#78350F",
+    "gradient": "linear-gradient(135deg, #FEF3C7, #FDE68A)"
+  },
+  "prieres": {
+    "primary": "#DBEAFE",
+    "secondary": "#BFDBFE",
+    "accent": "#93C5FD",
+    "text": "#1E3A8A",
+    "gradient": "linear-gradient(135deg, #DBEAFE, #BFDBFE)"
+  },
+  "ecritures": {
+    "primary": "#D1FAE5",
+    "secondary": "#A7F3D0",
+    "accent": "#6EE7B7",
+    "text": "#064E3B",
+    "gradient": "linear-gradient(135deg, #D1FAE5, #A7F3D0)"
+  },
+  "paroles": {
+    "primary": "#E0F2FE",
+    "secondary": "#BAE6FD",
+    "accent": "#7DD3FC",
+    "text": "#075985",
+    "gradient": "linear-gradient(135deg, #E0F2FE, #BAE6FD)"
+  },
+  "rencontres": {
+    "primary": "#FCE7F3",
+    "secondary": "#FBCFE8",
+    "accent": "#F9A8D4",
+    "text": "#831843",
+    "gradient": "linear-gradient(135deg, #FCE7F3, #FBCFE8)"
+  },
+  "relecture": {
+    "primary": "#E9D5FF",
+    "secondary": "#D8B4FE",
+    "accent": "#C084FC",
+    "text": "#581C87",
+    "gradient": "linear-gradient(135deg, #E9D5FF, #D8B4FE)"
+  }
+}

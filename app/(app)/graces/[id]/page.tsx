@@ -1,9 +1,10 @@
 'use client'
-import { useState, useEffect, use } from 'react'
-import { supabase } from '@/app/lib/supabase'
+
+import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, MapPin, Tag, Eye, Edit, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/app/lib/supabase'
+import { Calendar, MapPin, Tag, Eye, Share2, Edit, Trash2, ArrowLeft, Sparkles } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -14,15 +15,16 @@ interface Grace {
   lieu: string | null
   tags: string[]
   visibilite: string
+  statut_partage: string
   created_at: string
 }
 
-export default function DetailGracePage({ params }: { params: Promise<{ id: string }> }) {
+export default function GraceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
+  const router = useRouter()
   const [grace, setGrace] = useState<Grace | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchGrace()
@@ -30,24 +32,17 @@ export default function DetailGracePage({ params }: { params: Promise<{ id: stri
 
   const fetchGrace = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
       const { data, error } = await supabase
         .from('graces')
         .select('*')
         .eq('id', resolvedParams.id)
-        .eq('user_id', user.id)
         .single()
 
       if (error) throw error
       setGrace(data)
     } catch (error) {
       console.error('Erreur:', error)
-      setError('Grâce non trouvée')
+      router.push('/graces')
     } finally {
       setLoading(false)
     }
@@ -56,6 +51,7 @@ export default function DetailGracePage({ params }: { params: Promise<{ id: stri
   const handleDelete = async () => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette grâce ?')) return
 
+    setDeleting(true)
     try {
       const { error } = await supabase
         .from('graces')
@@ -66,152 +62,144 @@ export default function DetailGracePage({ params }: { params: Promise<{ id: stri
       router.push('/graces')
     } catch (error) {
       console.error('Erreur:', error)
-      setError('Erreur lors de la suppression')
+      alert('Erreur lors de la suppression')
+    } finally {
+      setDeleting(false)
     }
   }
 
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fef7ed 0%, #ffffff 50%, #fef3c7 100%)',
-        padding: '2rem 1rem'
+        minHeight: '100vh',        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <p style={{ textAlign: 'center', color: '#6b7280' }}>Chargement...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !grace) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fef7ed 0%, #ffffff 50%, #fef3c7 100%)',
-        padding: '2rem 1rem'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Link href="/graces" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            color: '#f59e0b',
-            textDecoration: 'none',
-            marginBottom: '1.5rem'
-          }}>
-            <ArrowLeft style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-            Retour aux grâces
-          </Link>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            textAlign: 'center',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😇</div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-              Grâce introuvable
-            </h1>
-            <p style={{ color: '#6b7280' }}>{error}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #fef7ed 0%, #ffffff 50%, #fef3c7 100%)',
-      padding: '2rem 1rem'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* En-tête avec navigation */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '2rem',
-          flexWrap: 'wrap',
-          gap: '1rem'
-        }}>
-          <Link href="/graces" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            color: '#f59e0b',
-            textDecoration: 'none',
-            transition: 'color 0.2s'
-          }}>
-            <ArrowLeft style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-            Retour aux grâces
-          </Link>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <Link 
-              href={`/graces/${grace.id}/modifier`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '0.5rem 1rem',
-                background: '#f59e0b',
-                color: 'white',
-                borderRadius: '0.75rem',
-                textDecoration: 'none',
-                transition: 'background 0.2s'
-              }}
-            >
-              <Edit style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-              Modifier
-            </Link>
-            <button
-              onClick={handleDelete}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '0.5rem 1rem',
-                background: '#ef4444',
-                color: 'white',
-                borderRadius: '0.75rem',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background 0.2s'
-              }}
-            >
-              <Trash2 style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-              Supprimer
-            </button>
-          </div>
-        </div>
-
-        {/* Carte principale */}
         <div style={{
           background: 'white',
           borderRadius: '1rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '2rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>✨</div>
+          <p style={{ color: '#78350F' }}>Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!grace) return null
+
+  return (
+    <div style={{
+      minHeight: '100vh',      padding: '2rem 1rem'
+    }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
           overflow: 'hidden'
         }}>
-          {/* En-tête de la carte */}
+          {/* En-tête jaune pastel */}
           <div style={{
-            background: 'linear-gradient(135deg, #f59e0b, #fb923c)',
-            padding: '1.5rem',
-            color: 'white'
+            background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+            padding: '2rem',
+            color: '#78350F'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ fontSize: '2.5rem', marginRight: '1rem' }}>✨</div>
-              <div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0 0 0.5rem 0' }}>
-                  Grâce reçue
-                </h1>
-                <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: 0 }}>
-                  Gardez mémoire des merveilles de Dieu
-                </p>
+            <Link href="/graces" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: '#78350F',
+              textDecoration: 'none',
+              marginBottom: '1rem',
+              fontSize: '0.875rem',
+              opacity: 0.8,
+              transition: 'opacity 0.2s'
+            }}>
+              <ArrowLeft size={16} />
+              Retour aux grâces
+            </Link>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: '1rem'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem'
+              }}>
+                <div style={{
+                  background: '#FCD34D',
+                  borderRadius: '0.75rem',
+                  padding: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Sparkles size={28} style={{ color: '#78350F' }} />
+                </div>
+                <div>
+                  <h1 style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    marginBottom: '0.25rem'
+                  }}>
+                    Grâce reçue
+                  </h1>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    opacity: 0.8
+                  }}>
+                    {format(new Date(grace.created_at), 'EEEE d MMMM yyyy', { locale: fr })}
+                  </p>
+                </div>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                gap: '0.5rem'
+              }}>
+                <Link
+                  href={`/graces/${grace.id}/modifier`}
+                  style={{
+                    background: 'white',
+                    color: '#78350F',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textDecoration: 'none',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Modifier"
+                >
+                  <Edit size={20} />
+                </Link>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  style={{
+                    background: 'white',
+                    color: '#EF4444',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    cursor: deleting ? 'not-allowed' : 'pointer',
+                    opacity: deleting ? 0.5 : 1,
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Supprimer"
+                >
+                  <Trash2 size={20} />
+                </button>
               </div>
             </div>
           </div>
@@ -219,142 +207,200 @@ export default function DetailGracePage({ params }: { params: Promise<{ id: stri
           {/* Contenu */}
           <div style={{ padding: '2rem' }}>
             {/* Texte principal */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
-                Grâce reçue
-              </h2>
-              <div style={{
-                background: '#fef7ed',
-                borderRadius: '0.75rem',
-                padding: '1.5rem',
-                borderLeft: '4px solid #f59e0b'
+            <div style={{
+              background: '#FFFEF7',
+              border: '2px solid #FEF3C7',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              marginBottom: '2rem'
+            }}>
+              <p style={{
+                fontSize: '1.25rem',
+                lineHeight: '1.8',
+                color: '#1F2937',
+                fontStyle: 'italic'
               }}>
-                <p style={{
-                  color: '#1f2937',
-                  lineHeight: '1.7',
-                  fontSize: '1.125rem',
-                  margin: 0
-                }}>
-                  {grace.texte}
-                </p>
-              </div>
+                « {grace.texte} »
+              </p>
             </div>
 
             {/* Métadonnées */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
-              {/* Date */}
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '1rem',
-                background: '#f9fafb',
-                borderRadius: '0.75rem'
+                background: '#FEF3C7',
+                borderRadius: '0.75rem',
+                padding: '1rem'
               }}>
-                <Calendar style={{ width: '1.25rem', height: '1.25rem', color: '#f59e0b', marginRight: '0.75rem' }} />
-                <div>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>Date</p>
-                  <p style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
-                    {format(new Date(grace.date), 'EEEE dd MMMM yyyy', { locale: fr })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Lieu */}
-              {grace.lieu && (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '1rem',
-                  background: '#f9fafb',
-                  borderRadius: '0.75rem'
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                  color: '#92400E'
                 }}>
-                  <MapPin style={{ width: '1.25rem', height: '1.25rem', color: '#f59e0b', marginRight: '0.75rem' }} />
-                  <div>
-                    <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>Lieu</p>
-                    <p style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>{grace.lieu}</p>
+                  <Calendar size={20} />
+                  <span style={{ fontWeight: '500' }}>Date</span>
+                </div>
+                <p style={{ color: '#78350F', fontSize: '1.125rem' }}>
+                  {format(new Date(grace.date), 'd MMMM yyyy', { locale: fr })}
+                </p>
+              </div>
+
+              {grace.lieu && (
+                <div style={{
+                  background: '#FEF3C7',
+                  borderRadius: '0.75rem',
+                  padding: '1rem'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '0.5rem',
+                    color: '#92400E'
+                  }}>
+                    <MapPin size={20} />
+                    <span style={{ fontWeight: '500' }}>Lieu</span>
                   </div>
+                  <p style={{ color: '#78350F', fontSize: '1.125rem' }}>
+                    {grace.lieu}
+                  </p>
                 </div>
               )}
 
-              {/* Visibilité */}
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '1rem',
-                background: '#f9fafb',
-                borderRadius: '0.75rem'
+                background: '#FEF3C7',
+                borderRadius: '0.75rem',
+                padding: '1rem'
               }}>
-                <Eye style={{ width: '1.25rem', height: '1.25rem', color: '#f59e0b', marginRight: '0.75rem' }} />
-                <div>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>Visibilité</p>
-                  <p style={{ fontWeight: '500', color: '#1f2937', margin: 0, textTransform: 'capitalize' }}>
-                    {grace.visibilite}
-                  </p>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                  color: '#92400E'
+                }}>
+                  <Eye size={20} />
+                  <span style={{ fontWeight: '500' }}>Visibilité</span>
                 </div>
+                <p style={{ color: '#78350F', fontSize: '1.125rem' }}>
+                  {grace.visibilite === 'prive' ? 'Privé' :
+                   grace.visibilite === 'anonyme' ? 'Anonyme' : 'Public'}
+                </p>
               </div>
 
-              {/* Date de création */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '1rem',
-                background: '#f9fafb',
-                borderRadius: '0.75rem'
-              }}>
-                <Calendar style={{ width: '1.25rem', height: '1.25rem', color: '#f59e0b', marginRight: '0.75rem' }} />
-                <div>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>Créée le</p>
-                  <p style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
-                    {format(new Date(grace.created_at), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+              {grace.statut_partage !== 'brouillon' && (
+                <div style={{
+                  background: '#FEF3C7',
+                  borderRadius: '0.75rem',
+                  padding: '1rem'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '0.5rem',
+                    color: '#92400E'
+                  }}>
+                    <Share2 size={20} />
+                    <span style={{ fontWeight: '500' }}>Partage</span>
+                  </div>
+                  <p style={{ 
+                    color: grace.statut_partage === 'approuve' ? '#059669' : '#78350F',
+                    fontSize: '1.125rem',
+                    fontWeight: grace.statut_partage === 'approuve' ? '600' : '400'
+                  }}>
+                    {grace.statut_partage === 'propose' ? 'Proposé au partage' :
+                     grace.statut_partage === 'approuve' ? 'Partagé avec la communauté' : 'Refusé'}
                   </p>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Tags */}
             {grace.tags && grace.tags.length > 0 && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <Tag style={{ width: '1.25rem', height: '1.25rem', color: '#f59e0b', marginRight: '0.5rem' }} />
-                  <h3 style={{ fontWeight: '600', color: '#1f2937', margin: 0 }}>Étiquettes</h3>
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {grace.tags.map((tag, index) => (
+              <div>
+                <h3 style={{
+                  fontSize: '1.125rem',
+                  fontWeight: '600',
+                  color: '#78350F',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <Tag size={20} />
+                  Tags
+                </h3>
+                <div style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  flexWrap: 'wrap'
+                }}>
+                  {grace.tags.map(tag => (
                     <span
-                      key={index}
+                      key={tag}
                       style={{
-                        padding: '0.25rem 0.75rem',
-                        background: '#fef3c7',
-                        color: '#92400e',
-                        borderRadius: '9999px',
+                        background: '#FDE68A',
+                        color: '#78350F',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '2rem',
                         fontSize: '0.875rem',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
                       }}
                     >
+                      <Tag size={14} />
                       {tag}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Citation spirituelle */}
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <p style={{
-            color: '#f59e0b',
-            fontStyle: 'italic',
-            fontSize: '1.125rem',
-            margin: 0
-          }}>
-            "Que notre cœur se tourne vers le Seigneur" - Saint Augustin
-          </p>
+            {/* Actions de partage si privé */}
+            {grace.visibilite !== 'prive' && grace.statut_partage === 'brouillon' && (
+              <div style={{
+                marginTop: '2rem',
+                padding: '1.5rem',
+                background: '#FEF3C7',
+                borderRadius: '0.75rem',
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  color: '#92400E',
+                  marginBottom: '1rem'
+                }}>
+                  Cette grâce peut être partagée pour édifier la communauté
+                </p>
+                <button
+                  style={{
+                    background: '#FCD34D',
+                    color: '#78350F',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Share2 size={20} />
+                  Proposer au partage
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

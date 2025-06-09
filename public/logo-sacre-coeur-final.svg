@@ -1,0 +1,250 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Définitions -->
+  <defs>
+    <!-- Dégradé principal -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F0F4FF;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Dégradé pour le cœur -->
+    <linearGradient id="heartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8A8A;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EE5A6F;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Dégradé doré sacré -->
+    <linearGradient id="sacredGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FEF3C7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FBBF24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Filtre glow -->
+    <filter id="goldenGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feFlood flood-color="#F59E0B" flood-opacity="0.3"/>
+      <feComposite in="coloredBlur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Filtre pour le cœur rayonnant -->
+    <filter id="heartGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feFlood flood-color="#FBBF24" flood-opacity="0.4"/>
+      <feComposite in="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Ombre principale -->
+    <filter id="mainShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="8" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.05"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Cercle principal -->
+  <circle cx="200" cy="200" r="190" fill="url(#bgGradient)" filter="url(#mainShadow)"/>
+  
+  <!-- Mandala spirituel en arrière-plan -->
+  <g opacity="0.1">
+    <!-- Pétales de mandala -->
+    <g transform="translate(200, 200)">
+      <g id="petal">
+        <ellipse cx="0" cy="-80" rx="30" ry="60" fill="#7BA7E1"/>
+      </g>
+      <use href="#petal" transform="rotate(60)"/>
+      <use href="#petal" transform="rotate(120)"/>
+      <use href="#petal" transform="rotate(180)"/>
+      <use href="#petal" transform="rotate(240)"/>
+      <use href="#petal" transform="rotate(300)"/>
+    </g>
+  </g>
+  
+  <!-- Cercle intérieur lumineux -->
+  <circle cx="200" cy="200" r="140" fill="white" opacity="0.5"/>
+  
+  <!-- Rayons courbes organiques avec variations -->
+  <g opacity="0.3">
+    <!-- Rayons principaux courbes vers chaque symbole - S'ARRÊTENT AVANT LES PASTILLES -->
+    <path d="M200,200 Q200,150 200,110" stroke="url(#sacredGold)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q245,165 270,145" stroke="url(#sacredGold)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q245,235 270,255" stroke="url(#sacredGold)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q200,250 200,290" stroke="url(#sacredGold)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q155,235 130,255" stroke="url(#sacredGold)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q155,165 130,145" stroke="url(#sacredGold)" stroke-width="4" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <!-- Nombreux rayons secondaires courbes avec variations - VERS CHAQUE PASTILLE -->
+  <g opacity="0.2">
+    <!-- Vers le haut (Étoiles) - ÉVITE LES ÉTOILES -->
+    <path d="M200,200 Q195,160 190,120" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q197,162 195,125" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q200,155 200,115" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q203,162 205,125" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q205,160 210,120" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    
+    <!-- Vers haut-droite (Prières) - S'ARRÊTE AVANT LA PASTILLE -->
+    <path d="M200,200 Q240,175 270,155" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q238,177 265,158" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q242,173 275,150" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q235,178 260,160" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q237,176 268,153" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    
+    <!-- Vers bas-droite (Écritures) - S'ARRÊTE AVANT LA PASTILLE -->
+    <path d="M200,200 Q240,225 270,245" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q238,223 265,242" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q242,227 275,250" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q235,222 260,240" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q237,224 268,247" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    
+    <!-- Vers le bas (Rencontres) - ÉVITE LES MAINS -->
+    <path d="M200,200 Q195,240 190,280" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q197,238 195,275" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q200,245 200,285" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q203,238 205,275" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q205,240 210,280" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    
+    <!-- Vers bas-gauche (Relecture) - S'ARRÊTE AVANT LA PASTILLE -->
+    <path d="M200,200 Q160,225 130,245" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q162,223 135,242" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q158,227 125,250" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q165,222 140,240" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q163,224 132,247" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    
+    <!-- Vers haut-gauche (Paroles) - S'ARRÊTE AVANT LA PASTILLE -->
+    <path d="M200,200 Q160,175 130,155" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q162,177 135,158" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q158,173 125,150" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q165,178 140,160" stroke="#FFD700" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M200,200 Q163,176 132,153" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <!-- Disposition hexagonale des symboles - PLUS ÉLOIGNÉS -->
+  
+  <!-- Grâces - Haut -->
+  <g transform="translate(200, 70)">
+    <circle cx="0" cy="0" r="38" fill="#FEF3C7" opacity="0.15"/>
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#FBBF24" stroke-width="1" opacity="0.3"/>
+    <text font-size="32" text-anchor="middle" dominant-baseline="middle">✨</text>
+  </g>
+  
+  <!-- Prières - Haut droite -->
+  <g transform="translate(310, 120)">
+    <circle cx="0" cy="0" r="38" fill="#E0E7FF" opacity="0.15"/>
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#6366F1" stroke-width="1" opacity="0.3"/>
+    <text font-size="32" text-anchor="middle" dominant-baseline="middle">🙏</text>
+  </g>
+  
+  <!-- Écritures - Bas droite -->
+  <g transform="translate(310, 280)">
+    <circle cx="0" cy="0" r="38" fill="#D1FAE5" opacity="0.15"/>
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#10B981" stroke-width="1" opacity="0.3"/>
+    <text font-size="32" text-anchor="middle" dominant-baseline="middle">📖</text>
+  </g>
+  
+  <!-- Rencontres - Bas -->
+  <g transform="translate(200, 330)">
+    <circle cx="0" cy="0" r="38" fill="#FCE7F3" opacity="0.15"/>
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#F43F5E" stroke-width="1" opacity="0.3"/>
+    <text font-size="32" text-anchor="middle" dominant-baseline="middle">🤝</text>
+  </g>
+  
+  <!-- Relecture - Bas gauche -->
+  <g transform="translate(90, 280)">
+    <circle cx="0" cy="0" r="38" fill="#E6EDFF" opacity="0.15"/>
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#7BA7E1" stroke-width="1" opacity="0.3"/>
+    <text font-size="32" text-anchor="middle" dominant-baseline="middle">🌿</text>
+  </g>
+  
+  <!-- Paroles - Haut gauche -->
+  <g transform="translate(90, 120)">
+    <circle cx="0" cy="0" r="38" fill="#E0F2FE" opacity="0.15"/>
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#0EA5E9" stroke-width="1" opacity="0.3"/>
+    <text font-size="32" text-anchor="middle" dominant-baseline="middle">🕊️</text>
+  </g>
+  
+  <!-- Centre : Sacré-Cœur de la version 26 BEAUCOUP plus petit -->
+  <g transform="translate(200, 200) scale(0.4)">
+    <!-- Fond bleu aquarelle qui englobe le cœur ET la croix -->
+    <g opacity="0.4">
+      <!-- Formes irrégulières plus grandes pour inclure la croix -->
+      <ellipse cx="0" cy="-20" rx="110" ry="130" fill="#4FC3F7" transform="rotate(15)" filter="url(#mainShadow)"/>
+      <ellipse cx="-10" cy="-25" rx="100" ry="125" fill="#29B6F6" transform="rotate(-20)" opacity="0.7"/>
+      <ellipse cx="10" cy="-15" rx="105" ry="120" fill="#03A9F4" transform="rotate(30)" opacity="0.5"/>
+      <ellipse cx="-15" cy="-10" rx="95" ry="115" fill="#4FC3F7" transform="rotate(-45)" opacity="0.6"/>
+      <ellipse cx="15" cy="-30" rx="100" ry="125" fill="#29B6F6" transform="rotate(60)" opacity="0.5"/>
+    </g>
+    
+    <!-- Cœur -->
+    <path d="M 0,-30
+             C -15,-55 -50,-65 -65,-45
+             C -80,-25 -80,-5 -70,15
+             C -60,35 -45,55 -30,70
+             C -20,80 -10,85 0,90
+             C 10,85 20,80 30,70
+             C 45,55 60,35 70,15
+             C 80,-5 80,-25 65,-45
+             C 50,-65 15,-55 0,-30 Z" 
+          fill="url(#heartGradient)" 
+          filter="url(#mainShadow)"/>
+    
+    <!-- Croix qui part DE LA POINTE DU CROISEMENT (-30) -->
+    <g opacity="0.8" filter="url(#mainShadow)">
+      <!-- Barre verticale : de y=-120 à y=-10 (démarre à -30 et descend de 20) -->
+      <rect x="-5" y="-120" width="10" height="110" fill="#8B4513"/>
+      <!-- Barre horizontale dans le tiers supérieur -->
+      <rect x="-40" y="-90" width="80" height="10" fill="#8B4513"/>
+      <!-- Effet lumineux doré -->
+      <g opacity="0.6">
+        <rect x="-5" y="-120" width="10" height="110" fill="url(#sacredGold)"/>
+        <rect x="-40" y="-90" width="80" height="10" fill="url(#sacredGold)"/>
+      </g>
+      <!-- Contraste à la croisée -->
+      <rect x="-5" y="-90" width="10" height="10" fill="#6B3410" opacity="0.5"/>
+    </g>
+  </g>
+  
+  <!-- Flammes au sommet de la croix EN DEHORS du scale pour être visibles -->
+  <g transform="translate(200, 152)" opacity="0.9">
+    <path d="M0,0 C-6,-12 6,-12 0,-22 C8,-12 -8,-12 0,0" fill="#FF6347"/>
+    <path d="M0,-6 C-3,-12 3,-12 0,-18 C4,-12 -4,-12 0,-6" fill="#FFD700" opacity="0.8"/>
+    <path d="M-12,0 C-15,-9 -10,-9 -12,-15 C-9,-9 -16,-9 -12,0" fill="#FFA500" opacity="0.7"/>
+    <path d="M12,0 C10,-9 15,-9 12,-15 C16,-9 9,-9 12,0" fill="#FFA500" opacity="0.7"/>
+  </g>
+  
+  <!-- Auréole externe subtile -->
+  <circle cx="200" cy="200" r="188" fill="none" stroke="url(#sacredGold)" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Petites étoiles décoratives - ENTRE chaque pastille -->
+  <g opacity="0.3">
+    <!-- Étoiles principales aux coins -->
+    <text x="160" y="50" font-size="12" fill="#FBBF24">✦</text>
+    <text x="240" y="50" font-size="12" fill="#FBBF24">✦</text>
+    <text x="350" y="200" font-size="12" fill="#FBBF24">✦</text>
+    <text x="240" y="350" font-size="12" fill="#FBBF24">✦</text>
+    <text x="160" y="350" font-size="12" fill="#FBBF24">✦</text>
+    <text x="50" y="200" font-size="12" fill="#FBBF24">✦</text>
+    
+    <!-- Étoiles supplémentaires entre les pastilles -->
+    <text x="255" y="95" font-size="10" fill="#FBBF24">✦</text>
+    <text x="340" y="200" font-size="10" fill="#FBBF24">✦</text>
+    <text x="255" y="305" font-size="10" fill="#FBBF24">✦</text>
+    <text x="145" y="305" font-size="10" fill="#FBBF24">✦</text>
+    <text x="60" y="200" font-size="10" fill="#FBBF24">✦</text>
+    <text x="145" y="95" font-size="10" fill="#FBBF24">✦</text>
+  </g>
+</svg>
