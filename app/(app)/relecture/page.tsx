@@ -117,13 +117,13 @@ export default function RelecturePage() {
 
   const getTypeConfig = (type: string) => {
     const configs: Record<string, any> = {
-      grace: { icon: Sparkles, color: '#FCD34D', gradient: 'linear-gradient(135deg, #FEF3C7, #FDE68A)', label: 'Grâce' },
-      priere: { icon: Heart, color: '#818CF8', gradient: 'linear-gradient(135deg, #E0E7FF, #C7D2FE)', label: 'Prière' },
-      ecriture: { icon: BookOpen, color: '#34D399', gradient: 'linear-gradient(135deg, #D1FAE5, #A7F3D0)', label: 'Écriture' },
-      parole: { icon: MessageSquare, color: '#60A5FA', gradient: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)', label: 'Parole' },
-      rencontre: { icon: Users, color: '#F87171', gradient: 'linear-gradient(135deg, #FCE7F3, #FBCFE8)', label: 'Rencontre' }
+      grace: { emoji: "✨", icon: Sparkles, color: '#FCD34D', gradient: 'linear-gradient(135deg, #FEF3C7, #FDE68A)', label: 'Grâce' },
+      priere: { emoji: "🙏", icon: Heart, color: '#818CF8', gradient: 'linear-gradient(135deg, #E0E7FF, #C7D2FE)', label: 'Prière' },
+      ecriture: { emoji: "📖", icon: BookOpen, color: '#34D399', gradient: 'linear-gradient(135deg, #D1FAE5, #A7F3D0)', label: 'Écriture' },
+      parole: { emoji: "🕊️", icon: MessageSquare, color: '#60A5FA', gradient: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)', label: 'Parole' },
+      rencontre: { emoji: "🤝", icon: Users, color: '#F87171', gradient: 'linear-gradient(135deg, #FCE7F3, #FBCFE8)', label: 'Rencontre' }
     }
-    return configs[type] || { icon: Sparkles, color: '#6b7280', gradient: 'linear-gradient(135deg, #6b7280, #4b5563)', label: 'Autre' }
+    return configs[type] || { emoji: "✨", icon: Sparkles, color: '#6b7280', gradient: 'linear-gradient(135deg, #6b7280, #4b5563)', label: 'Autre' }
   }
 
   const getSuggestions = () => {
@@ -905,7 +905,7 @@ export default function RelecturePage() {
                         color: 'white',
                         flexShrink: 0
                       }}>
-                        <Icon size={20} />
+                        <span style={{fontSize: "20px"}}>{config.emoji}</span>
                       </div>
                       
                       <div style={{ flex: 1 }}>
@@ -1058,7 +1058,7 @@ export default function RelecturePage() {
                       alignItems: 'center',
                       gap: '0.5rem'
                     }}>
-                      <Icon size={24} />
+                      <span style={{fontSize: "24px"}}>{config.emoji}</span>
                       {config.label}s ({typeEntries.length})
                     </h3>
                   </div>
@@ -1159,7 +1159,7 @@ export default function RelecturePage() {
                         onClick={() => handleLinkClick(entry)}
                       >
                         <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
-                          <Icon size={16} style={{ color: config.color, marginTop: '2px' }} />
+                          <span style={{fontSize: "16px",  color: config.color, marginTop: '2px' }}>{config.emoji}</span>
                           <div style={{ flex: 1 }}>
                             <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>
                               {getEntryText(entry)}
@@ -1220,7 +1220,7 @@ export default function RelecturePage() {
                         onClick={() => handleLinkClick(entry)}
                       >
                         <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
-                          <Icon size={16} style={{ color: config.color, marginTop: '2px' }} />
+                          <span style={{fontSize: "16px",  color: config.color, marginTop: '2px' }}>{config.emoji}</span>
                           <div style={{ flex: 1 }}>
                             <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>
                               {getEntryText(entry)}
@@ -1294,7 +1294,7 @@ export default function RelecturePage() {
                     justifyContent: 'center',
                     color: 'white'
                   }}>
-                    <Icon size={20} />
+                    <span style={{fontSize: "20px"}}>{config.emoji}</span>
                   </div>
                   <p style={{
                     fontSize: '0.875rem',
@@ -1427,7 +1427,7 @@ export default function RelecturePage() {
                         color: 'white',
                         flexShrink: 0
                       }}>
-                        <Icon size={18} />
+                        <span style={{fontSize: "18px"}}>{config.emoji}</span>
                       </div>
                       <div>
                         <p style={{
@@ -1543,7 +1543,7 @@ export default function RelecturePage() {
                     const Icon = config.icon
                     return (
                       <>
-                        <Icon size={16} style={{ color: config.color }} />
+                        <span style={{fontSize: "16px",  color: config.color }}>{config.emoji}</span>
                         <span style={{ fontSize: '0.875rem', color: '#1f2937', fontWeight: '500' }}>
                           {getEntryText(selectedEntryForLink)}
                         </span>
@@ -1634,7 +1634,7 @@ export default function RelecturePage() {
                           </p>
                         )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                          <Icon size={16} style={{ color: config.color }} />
+                          <span style={{fontSize: "16px",  color: config.color }}>{config.emoji}</span>
                           <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>
                             {getEntryText(link.entry)}
                           </span>

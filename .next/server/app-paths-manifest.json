@@ -1,6 +1,4 @@
 {
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(app)/relecture/page": "app/(app)/relecture/page.js",
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
-  "/(app)/paroles/page": "app/(app)/paroles/page.js"
+  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js",
+  "/(app)/ecritures/[id]/page": "app/(app)/ecritures/[id]/page.js"
 }
