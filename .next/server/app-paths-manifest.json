@@ -1,10 +1,3 @@
 {
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/page": "app/page.js",
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
-  "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
-  "/(app)/profile/security/page": "app/(app)/profile/security/page.js",
-  "/(app)/prieres/page": "app/(app)/prieres/page.js",
-  "/(app)/ecritures/page": "app/(app)/ecritures/page.js",
-  "/(app)/relecture/page": "app/(app)/relecture/page.js"
+  "/page": "app/page.js"
 }

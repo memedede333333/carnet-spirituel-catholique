@@ -345,7 +345,7 @@ export default function RelecturePage() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(to bottom right, #FFFFFF 0%, #F8FAFF 33%, #F0F4FF 66%, #E6EDFF 100%)',
+        background: '#e0f2fe',
         padding: '2rem 1rem',
         display: 'flex',
         alignItems: 'center',
@@ -370,7 +370,7 @@ export default function RelecturePage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(to bottom right, #FFFFFF 0%, #F8FAFF 33%, #F0F4FF 66%, #E6EDFF 100%)',
+      background: '#e0f2fe',
       paddingBottom: '4rem'
     }}>      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
         {/* En-tête avec fond bleu pastel */}
@@ -472,7 +472,7 @@ export default function RelecturePage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem', background: '#e0f2fe' }}>
         {/* Barre d'outils */}
         <div style={{
           background: 'white',

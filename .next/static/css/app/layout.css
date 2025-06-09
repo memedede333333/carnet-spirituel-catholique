@@ -7,7 +7,7 @@
 /* ===== Variables CSS ===== */
 :root {
   /* Palette liturgique */
-  --background: #fffdf8;
+  --background: #f9f9f9;
   --surface: #ffffff;
   --primary: #7b61ff;
   --primary-hover: #6b51ef;
@@ -53,6 +53,21 @@ html {
 
 body {
   min-height: 100vh;
+  background: #fafafa;
+  min-height: 100vh;
+  
+  min-height: 100vh;
+  
+  min-height: 100vh;
+  
+  min-height: 100vh;
+  
+  min-height: 100vh;
+  
+  min-height: 100vh;
+  min-height: 100vh;
+  min-height: 100vh;
+  
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -149,17 +164,17 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
 }
 
-.from-amber-50 { --from-color: #fffbeb; }
-.to-orange-50 { --to-color: #fff7ed; }
+.from-amber-50 { --from-color: #f0f9ff; }
+.to-orange-50 { --to-color: #e0f2fe; }
 .from-indigo-50 { --from-color: #eef2ff; }
-.to-purple-50 { --to-color: #faf5ff; }
+.to-purple-50 { --to-color: #dbeafe; }
 .from-emerald-50 { --from-color: #ecfdf5; }
 .to-teal-50 { --to-color: #f0fdfa; }
 .from-sky-50 { --from-color: #f0f9ff; }
 .to-blue-50 { --to-color: #eff6ff; }
-.from-rose-50 { --from-color: #fff1f2; }
-.to-pink-50 { --to-color: #fdf2f8; }
-.from-purple-50 { --from-color: #faf5ff; }
+.from-rose-50 { --from-color: #e0f2fe; }
+.to-pink-50 { --to-color: #dbeafe; }
+.from-purple-50 { --from-color: #dbeafe; }
 
 .module-icon-wrapper {
   width: 60px;
@@ -583,7 +598,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .gold-gradient {
-  background: linear-gradient(135deg, #fef3c7, #fbbf24);
+  background: linear-gradient(to bottom right, #ffffff 0%, #f0f9ff 33%, #e0f2fe 66%, #dbeafe 100%);
 }
 
 .page-title {
@@ -746,7 +761,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tag-amber {
-  background: #fef3c7;
+  background: #e0f2fe;
   color: #92400e;
 }
 
@@ -867,7 +882,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .radio-label:hover {
   border-color: var(--primary);
-  background: #faf5ff;
+  background: #dbeafe;
 }
 
 .radio-label input {
@@ -898,7 +913,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .checkbox-label-spiritual:hover {
   border-color: var(--primary);
-  background: #faf5ff;
+  background: #dbeafe;
 }
 
 .checkbox-spiritual {
