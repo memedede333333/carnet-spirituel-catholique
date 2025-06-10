@@ -1,13 +1,3 @@
 {
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
-  "/(app)/graces/page": "app/(app)/graces/page.js",
-  "/(app)/ecritures/page": "app/(app)/ecritures/page.js",
-  "/(app)/ecritures/[id]/page": "app/(app)/ecritures/[id]/page.js",
-  "/(app)/prieres/page": "app/(app)/prieres/page.js",
-  "/(app)/prieres/nouvelle/page": "app/(app)/prieres/nouvelle/page.js",
-  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js",
-  "/(app)/ecritures/[id]/modifier/page": "app/(app)/ecritures/[id]/modifier/page.js",
-  "/(app)/rencontres/page": "app/(app)/rencontres/page.js",
-  "/(app)/paroles/page": "app/(app)/paroles/page.js",
   "/(app)/relecture/page": "app/(app)/relecture/page.js"
 }
