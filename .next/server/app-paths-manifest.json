@@ -1,5 +1,3 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/(app)/relecture/page": "app/(app)/relecture/page.js",
-  "/(app)/ecritures/[id]/page": "app/(app)/ecritures/[id]/page.js"
+  "/(app)/relecture/page": "app/(app)/relecture/page.js"
 }
