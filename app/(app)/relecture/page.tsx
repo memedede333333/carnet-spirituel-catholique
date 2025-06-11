@@ -1500,73 +1500,327 @@ export default function RelecturePage() {
                 Vue d'ensemble de votre parcours spirituel
               </h3>
               <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                Visualisez tous vos éléments spirituels
+                Visualisez tous vos éléments spirituels avec leurs connexions et suivis
               </p>
             </div>
 
             {filteredEntries && filteredEntries.length > 0 ? (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
                 gap: '1.5rem'
               }}>
                 {filteredEntries.map((entry, index) => {
-                  const config = getTypeConfig(entry.type)
+                  const config = getTypeConfig(entry.type);
+                  const relatedLinks = spiritualLinks.filter(
+                    l => l.element_source_id === entry.id || l.element_cible_id === entry.id
+                  );
+                  
+                  // Informations spécifiques selon le type
+                  let statusBadge = null;
+                  let extraDetails = [];
+                  
+                  // Pour les prières avec suivis
+                  if (entry.type === 'priere' && entry.suivis_priere && entry.suivis_priere.length > 0) {
+                    const lastSuivi = entry.suivis_priere[entry.suivis_priere.length - 1];
+                    const evolutionColors = {
+                      gueri: '#10b981',
+                      guerison_partielle: '#10b981',
+                      amelioration: '#3b82f6',
+                      stable: '#f59e0b',
+                      aggravation: '#ef4444',
+                      paix: '#8b5cf6',
+                      conversion: '#ec4899',
+                      reconciliation: '#06b6d4',
+                      reponse_claire: '#10b981',
+                      signe_encourageant: '#3b82f6',
+                      dans_mystere: '#6b7280',
+                      en_cours: '#6366f1'
+                    };
+                    
+                    statusBadge = (
+                      <div style={{
+                        background: evolutionColors[lastSuivi.evolution] || '#6366f1',
+                        color: 'white',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.75rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}>
+                        <span style={{ fontSize: '0.625rem' }}>📋</span>
+                        {entry.suivis_priere.length} suivi{entry.suivis_priere.length > 1 ? 's' : ''}
+                      </div>
+                    );
+                  }
+                  
+                  // Pour les paroles accomplies
+                  if (entry.type === 'parole' && entry.date_accomplissement) {
+                    statusBadge = (
+                      <div style={{
+                        background: '#10b981',
+                        color: 'white',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.75rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}>
+                        ✓ Accomplie
+                      </div>
+                    );
+                  }
+                  
+                  // Détails supplémentaires selon le type
+                  if (entry.type === 'priere' && entry.type_priere) {
+                    extraDetails.push({
+                      icon: entry.type_priere === 'guerison' ? '🏥' : entry.type_priere === 'freres' ? '👥' : '🙏',
+                      text: entry.type_priere === 'guerison' ? 'Guérison' : entry.type_priere === 'freres' ? 'Prière des frères' : 'Intercession'
+                    });
+                  }
+                  
+                  if (entry.type === 'ecriture' && entry.reference) {
+                    extraDetails.push({
+                      icon: '📖',
+                      text: entry.reference
+                    });
+                  }
+                  
+                  if (entry.type === 'parole' && entry.destinataire) {
+                    extraDetails.push({
+                      icon: '📨',
+                      text: entry.destinataire === 'moi' ? 'Pour moi' : entry.destinataire === 'personne' ? entry.personne_destinataire : 'Inconnu'
+                    });
+                  }
+                  
                   return (
                     <div
                       key={entry.id}
                       style={{
                         background: 'white',
                         borderRadius: '1rem',
-                        padding: '1.5rem',
+                        overflow: 'hidden',
                         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                         cursor: 'pointer',
-                        border: '2px solid transparent'
+                        border: '2px solid transparent',
+                        transition: 'all 0.2s',
+                        position: 'relative'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.borderColor = config.color + '40';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = 'transparent';
                       }}
                       onClick={() => handleLinkClick(entry)}
                     >
+                      {/* Barre de couleur en haut */}
                       <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        marginBottom: '1rem'
-                      }}>
-                        <span style={{ fontSize: '1.5rem' }}>{config.emoji}</span>
-                        <span style={{ color: config.color, fontSize: '0.875rem', fontWeight: '600' }}>
-                          {config.label}
-                        </span>
-                      </div>
-                      <p style={{
-                        color: '#1f2937',
-                        fontSize: '0.875rem',
-                        lineHeight: '1.5',
-                        marginBottom: '0.75rem'
-                      }}>
-                        {getEntryText(entry)}
-                      </p>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: '#6b7280',
-                        fontSize: '0.75rem'
-                      }}>
-                        <Calendar size={14} />
-                        {format(new Date(entry.date), 'd MMM yyyy', { locale: fr })}
+                        height: '4px',
+                        background: config.gradient
+                      }} />
+                      
+                      {/* Contenu principal */}
+                      <div style={{ padding: '1.5rem' }}>
+                        {/* Header avec emoji et type */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '1rem'
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem'
+                          }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              background: config.gradient,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1.5rem',
+                              color: 'white',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                            }}>
+                              {config.emoji}
+                            </div>
+                            <div>
+                              <span style={{ 
+                                color: config.color, 
+                                fontSize: '0.875rem', 
+                                fontWeight: '600',
+                                display: 'block'
+                              }}>
+                                {config.label}
+                              </span>
+                              <span style={{ 
+                                fontSize: '0.75rem', 
+                                color: '#9ca3af' 
+                              }}>
+                                {entry.date ? new Date(entry.date).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                }) : new Date(entry.created_at).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {statusBadge}
+                        </div>
+                        
+                        {/* Texte principal */}
+                        <p style={{ 
+                          fontSize: '0.875rem', 
+                          color: '#4b5563',
+                          marginBottom: '0.75rem',
+                          lineHeight: '1.5',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {getEntryText(entry)}
+                        </p>
+                        
+                        {/* Infos supplémentaires */}
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '0.5rem',
+                          marginTop: '0.75rem'
+                        }}>
+                          {/* Personne liée */}
+                          {(entry.type === 'priere' || entry.type === 'rencontre') && entry.personne_prenom && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.75rem',
+                              color: '#6b7280',
+                              background: '#f3f4f6',
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '0.375rem'
+                            }}>
+                              <span>👤</span>
+                              <span>{entry.personne_prenom} {entry.personne_nom || ''}</span>
+                            </div>
+                          )}
+                          
+                          {/* Lieu */}
+                          {entry.lieu && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.75rem',
+                              color: '#6b7280',
+                              background: '#f3f4f6',
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '0.375rem'
+                            }}>
+                              <span>📍</span>
+                              <span>{entry.lieu}</span>
+                            </div>
+                          )}
+                          
+                          {/* Détails supplémentaires */}
+                          {extraDetails.map((detail, i) => (
+                            <div key={i} style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.75rem',
+                              color: '#6b7280',
+                              background: '#f3f4f6',
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '0.375rem'
+                            }}>
+                              <span>{detail.icon}</span>
+                              <span>{detail.text}</span>
+                            </div>
+                          ))}
+                          
+                          {/* Nombre de liens */}
+                          {relatedLinks.length > 0 && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              fontSize: '0.75rem',
+                              color: '#7BA7E1',
+                              background: '#E6EDFF',
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '0.375rem',
+                              fontWeight: '500'
+                            }}>
+                              <span>🔗</span>
+                              <span>{relatedLinks.length} lien{relatedLinks.length > 1 ? 's' : ''}</span>
+                            </div>
+                          )}
+                          
+                          {/* Tags */}
+                          {entry.tags && entry.tags.length > 0 && (
+                            <>
+                              {entry.tags.slice(0, 2).map((tag, i) => (
+                                <div key={i} style={{
+                                  fontSize: '0.75rem',
+                                  color: config.color,
+                                  background: config.color + '20',
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '0.375rem'
+                                }}>
+                                  #{tag}
+                                </div>
+                              ))}
+                              {entry.tags.length > 2 && (
+                                <div style={{
+                                  fontSize: '0.75rem',
+                                  color: '#6b7280',
+                                  background: '#f3f4f6',
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '0.375rem'
+                                }}>
+                                  +{entry.tags.length - 2}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             ) : (
-              <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
-                Aucune entrée à afficher
-              </p>
+              <div style={{
+                textAlign: 'center',
+                padding: '4rem',
+                color: '#6b7280'
+              }}>
+                <p>Aucun élément spirituel pour cette période.</p>
+                <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  Changez les filtres pour voir plus d'éléments.
+                </p>
+              </div>
             )}
           </div>
         )}
 
-        {/* Vue Gestion des liens */}
         {viewMode === 'gestion' && (
           <div>
             <div style={{
