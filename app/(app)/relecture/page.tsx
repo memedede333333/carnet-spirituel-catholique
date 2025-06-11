@@ -18,7 +18,7 @@ export default function RelecturePage() {
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [expandedEntry, setExpandedEntry] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'ensemble' | 'gestion' | 'fleuve' | 'constellation'>('chronologique')
+  const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'fleuve' | 'constellation'>('chronologique')
   const [showLinkModal, setShowLinkModal] = useState(false)
   const [selectedEntryForLink, setSelectedEntryForLink] = useState<any>(null)
   const [possibleLinks, setPossibleLinks] = useState<any[]>([])
@@ -26,8 +26,6 @@ export default function RelecturePage() {
   const [firstSelectedEntry, setFirstSelectedEntry] = useState<any>(null)
   const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
   const [hoveredEntry, setHoveredEntry] = useState<any>(null)
-  const [showContextMenu, setShowContextMenu] = useState<{x: number, y: number, entry: any} | null>(null)
-  const [showDetailModal, setShowDetailModal] = useState<any>(null)
 
   useEffect(() => {
     loadAllEntries()
@@ -487,26 +485,6 @@ export default function RelecturePage() {
           alignItems: 'center'
         }}>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={() => setViewMode('gestion')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: viewMode === 'gestion' ? '#7BA7E1' : 'transparent',
-              color: viewMode === 'gestion' ? 'white' : '#6b7280',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s',
-              marginRight: 'auto'
-            }}
-          >
-            🔗
-            Gestion des liens
-          </button>
-
             <button
               onClick={() => {
                 setLinkMode(!linkMode)
@@ -1227,185 +1205,7 @@ export default function RelecturePage() {
         )}
 
         {/* Vue Jardin des grâces - Avec bulles animées */}
-        
-
-        {/* Vue d'ensemble - Visualisation globale */}
-        {viewMode === 'ensemble' && (
-          <div style={{ marginTop: '2rem' }}>
-            {/* En-tête */}
-            <div style={{
-              background: 'linear-gradient(135deg, #E6EDFF 0%, #F0F4FF 50%, #E6EDFF 100%)',
-              borderRadius: '1rem',
-              padding: '1.5rem',
-              marginBottom: '2rem',
-              border: '1px solid #D6E5F5'
-            }}>
-              <h3 style={{ 
-                color: '#7BA7E1',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                👁️ Vue d'ensemble
-              </h3>
-              <p style={{ color: '#6b7280', margin: 0 }}>
-                Visualisez tous vos éléments spirituels et leurs connexions.
-                {linkMode ? ' Cliquez sur une carte pour créer un lien.' : ' Activez le Mode Lien pour créer des connexions.'}
-              </p>
-            </div>
-
-            {/* Grille de cartes */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-              gap: '1.5rem'
-            }}>
-              {filteredEntries.map(entry => {
-                const config = getTypeConfig(entry.type);
-                const isSource = selectedEntryForLink?.id === entry.id;
-                
-                return (
-                  <div
-                    key={entry.id}
-                    onClick={() => {
-                      if (linkMode) {
-                        handleLinkClick(entry);
-                      }
-                    }}
-                    style={{
-                      background: 'white',
-                      borderRadius: '1rem',
-                      padding: '1.5rem',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                      border: isSource ? '3px solid #7BA7E1' : (entry.linksCount > 0 ? '2px solid #D6E5F5' : '2px solid transparent'),
-                      cursor: linkMode ? 'pointer' : 'default',
-                      transition: 'all 0.2s',
-                      position: 'relative'
-                    }}
-                  >
-                    {/* Badge nombre de liens */}
-                    {entry.linksCount > 0 && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '0.5rem',
-                        right: '0.5rem',
-                        background: '#7BA7E1',
-                        color: 'white',
-                        borderRadius: '50%',
-                        width: '24px',
-                        height: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold'
-                      }}>
-                        {entry.linksCount}
-                      </div>
-                    )}
-                    
-                    {/* Contenu avec emoji */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                      <span style={{ fontSize: '2rem' }}>{config.emoji}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{
-                          fontSize: '0.75rem',
-                          color: config.color,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          marginBottom: '0.25rem'
-                        }}>
-                          {config.label}
-                        </div>
-                        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                          {getEntryText(entry).substring(0, 50)}...
-                        </div>
-                        <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                          📅 {format(parseISO(entry.date || entry.created_at), 'dd MMM yyyy', { locale: fr })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Message si aucune entrée */}
-            {filteredEntries.length === 0 && (
-              <div style={{
-                textAlign: 'center',
-                padding: '4rem',
-                color: '#9CA3AF'
-              }}>
-                <p>Aucun élément trouvé.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Vue Gestion des liens */}
-        {viewMode === 'gestion' && (
-          <div style={{ marginTop: '2rem' }}>
-            {/* En-tête */}
-            <div style={{
-              background: 'linear-gradient(135deg, #E6EDFF 0%, #F0F4FF 50%, #E6EDFF 100%)',
-              borderRadius: '1rem',
-              padding: '1.5rem',
-              marginBottom: '2rem',
-              border: '1px solid #D6E5F5'
-            }}>
-              <h3 style={{ 
-                color: '#7BA7E1',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                🔗 Gestion des liens spirituels
-              </h3>
-              <p style={{ color: '#6b7280', margin: 0 }}>
-                Visualisez et gérez tous les liens entre vos éléments.
-              </p>
-            </div>
-
-            {/* Liste simplifiée */}
-            <div style={{
-              background: 'white',
-              borderRadius: '1rem',
-              padding: '2rem',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-            }}>
-              <h4 style={{ marginBottom: '1rem', color: '#374151' }}>
-                Liens existants ({spiritualLinks.length})
-              </h4>
-              
-              {spiritualLinks.length > 0 ? (
-                <div>
-                  {spiritualLinks.slice(0, 5).map((link, idx) => (
-                    <div key={idx} style={{
-                      padding: '1rem',
-                      marginBottom: '0.5rem',
-                      background: '#F9FAFB',
-                      borderRadius: '0.5rem'
-                    }}>
-                      Lien {link.type_lien}
-                    </div>
-                  ))}
-                  {spiritualLinks.length > 5 && (
-                    <p style={{ color: '#6B7280', marginTop: '1rem' }}>
-                      Et {spiritualLinks.length - 5} autres liens...
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p style={{ color: '#9CA3AF' }}>
-                  Aucun lien créé. Utilisez le Mode Lien pour commencer.
-                </p>
-              )}
-            </div>
-          </div>
-        )}{viewMode === 'jardin' && (
+        {viewMode === 'jardin' && (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
