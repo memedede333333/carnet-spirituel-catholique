@@ -272,6 +272,36 @@ export default function RelecturePage() {
     })
   }
 
+    const navigateToDetail = (entry: any) => {
+    // Sauvegarder l'état actuel
+    const currentState = {
+      viewMode,
+      selectedPeriod,
+      selectedTypes,
+      scrollPosition: window.scrollY
+    };
+    sessionStorage.setItem('relecture-state', JSON.stringify(currentState));
+    
+    // Naviguer vers le module approprié
+    switch (entry.type) {
+      case 'grace':
+        router.push(`/graces/${entry.id}`);
+        break;
+      case 'priere':
+        router.push(`/prieres/${entry.id}`);
+        break;
+      case 'ecriture':
+        router.push(`/ecritures/${entry.id}`);
+        break;
+      case 'parole':
+        router.push(`/paroles/${entry.id}`);
+        break;
+      case 'rencontre':
+        router.push(`/rencontres/${entry.id}`);
+        break;
+    }
+  }
+
   const handleLinkClick = (entry: any) => {
     if (linkMode) {
       if (!firstSelectedEntry) {
