@@ -18,7 +18,7 @@ export default function RelecturePage() {
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [expandedEntry, setExpandedEntry] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'fleuve' | 'constellation'>('chronologique')
+  const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'fleuve' | 'constellation' | 'ensemble' | 'gestion'>('chronologique')
   const [showLinkModal, setShowLinkModal] = useState(false)
   const [selectedEntryForLink, setSelectedEntryForLink] = useState<any>(null)
   const [possibleLinks, setPossibleLinks] = useState<any[]>([])
@@ -599,6 +599,48 @@ export default function RelecturePage() {
           >
             <Flower size={16} />
             Jardin des grâces
+          </button>
+          <button
+            onClick={() => setViewMode('ensemble')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'ensemble' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'ensemble' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              minWidth: 'fit-content'
+            }}
+          >
+            <Eye size={16} />
+            Vue d'ensemble
+          </button>
+          <button
+            onClick={() => setViewMode('gestion')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'gestion' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'gestion' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              minWidth: 'fit-content'
+            }}
+          >
+            <LinkIcon size={16} />
+            Gestion des liens
           </button>
           
           
@@ -1439,6 +1481,120 @@ export default function RelecturePage() {
             onEntryClick={handleLinkClick}
             getTypeConfig={getTypeConfig}
           />
+        )}
+
+
+        
+        {/* Vue d'ensemble */}
+        {viewMode === 'ensemble' && (
+          <div>
+            <div style={{
+              background: 'linear-gradient(135deg, #E6EDFF, #F0F4FF)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '2rem',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ color: '#7BA7E1', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
+                Vue d'ensemble de votre parcours spirituel
+              </h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                Visualisez tous vos éléments spirituels
+              </p>
+            </div>
+
+            {filteredEntries && filteredEntries.length > 0 ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '1.5rem'
+              }}>
+                {filteredEntries.map((entry, index) => {
+                  const config = getTypeConfig(entry.type)
+                  return (
+                    <div
+                      key={entry.id}
+                      style={{
+                        background: 'white',
+                        borderRadius: '1rem',
+                        padding: '1.5rem',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                        cursor: 'pointer',
+                        border: '2px solid transparent'
+                      }}
+                      onClick={() => handleLinkClick(entry)}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        marginBottom: '1rem'
+                      }}>
+                        <span style={{ fontSize: '1.5rem' }}>{config.emoji}</span>
+                        <span style={{ color: config.color, fontSize: '0.875rem', fontWeight: '600' }}>
+                          {config.label}
+                        </span>
+                      </div>
+                      <p style={{
+                        color: '#1f2937',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.5',
+                        marginBottom: '0.75rem'
+                      }}>
+                        {getEntryText(entry)}
+                      </p>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: '#6b7280',
+                        fontSize: '0.75rem'
+                      }}>
+                        <Calendar size={14} />
+                        {format(new Date(entry.date), 'd MMM yyyy', { locale: fr })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
+                Aucune entrée à afficher
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Vue Gestion des liens */}
+        {viewMode === 'gestion' && (
+          <div>
+            <div style={{
+              background: 'linear-gradient(135deg, #E6EDFF, #F0F4FF)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '2rem',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ color: '#7BA7E1', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
+                Gestion des liens spirituels
+              </h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                Gérez les connexions entre vos éléments
+              </p>
+            </div>
+
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              textAlign: 'center'
+            }}>
+              <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#7BA7E1' }}>
+                {spiritualLinks.length}
+              </p>
+              <p style={{ color: '#6b7280' }}>Liens créés</p>
+            </div>
+          </div>
         )}
 
 

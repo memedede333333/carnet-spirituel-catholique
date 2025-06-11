@@ -1,0 +1,1895 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { supabase } from '@/app/lib/supabase'
+import Link from 'next/link'
+import { ArrowLeft, Sparkles, Heart, BookOpen, Users, MessageSquare, Filter, Calendar, ChevronRight, Eye, Lightbulb, Zap, Link as LinkIcon, Compass, Cross, Church, Flower, Star, Check } from 'lucide-react'
+import { format, parseISO, isWithinInterval, subMonths, differenceInDays } from 'date-fns'
+import { fr } from 'date-fns/locale'
+
+import ConstellationView from '@/app/components/ConstellationView'
+
+export default function RelecturePage() {
+  const [loading, setLoading] = useState(true)
+  const [entries, setEntries] = useState<any[]>([])
+  const [filteredEntries, setFilteredEntries] = useState<any[]>([])
+  const [selectedPeriod, setSelectedPeriod] = useState('3months')
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(['all'])
+  const [showSuggestions, setShowSuggestions] = useState(true)
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'ensemble' | 'gestion' | 'fleuve' | 'constellation'>('chronologique')
+  const [showLinkModal, setShowLinkModal] = useState(false)
+  const [selectedEntryForLink, setSelectedEntryForLink] = useState<any>(null)
+  const [possibleLinks, setPossibleLinks] = useState<any[]>([])
+  const [linkMode, setLinkMode] = useState(false)
+  const [firstSelectedEntry, setFirstSelectedEntry] = useState<any>(null)
+  const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
+  const [hoveredEntry, setHoveredEntry] = useState<any>(null)
+  const [showContextMenu, setShowContextMenu] = useState<{x: number, y: number, entry: any} | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState<any>(null)
+
+  useEffect(() => {
+    loadAllEntries()
+  }, [])
+
+  useEffect(() => {
+    filterEntries()
+  }, [entries, selectedPeriod, selectedTypes])
+
+  async function loadAllEntries() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const [graces, prieres, ecritures, paroles, rencontres] = await Promise.all([
+        supabase.from('graces').select('*').eq('user_id', user.id),
+        supabase.from('prieres').select('*').eq('user_id', user.id),
+        supabase.from('paroles_ecriture').select('*').eq('user_id', user.id),
+        supabase.from('paroles_connaissance').select('*').eq('user_id', user.id),
+        supabase.from('rencontres_missionnaires').select('*').eq('user_id', user.id)
+      ])
+
+      const allEntries = [
+        ...(graces.data || []).map(g => ({ ...g, type: 'grace', date: g.date })),
+        ...(prieres.data || []).map(p => ({ ...p, type: 'priere', date: p.date })),
+        ...(ecritures.data || []).map(e => ({ ...e, type: 'ecriture', date: e.date_reception })),
+        ...(paroles.data || []).map(p => ({ ...p, type: 'parole', date: p.date })),
+        ...(rencontres.data || []).map(r => ({ ...r, type: 'rencontre', date: r.date }))
+      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+      
+      
+      // Charger aussi les liens spirituels
+      const { data: liens } = await supabase
+        .from('liens_spirituels')
+        .select('*')
+        .eq('user_id', user.id)
+      
+      // Ajouter le nombre de liens à chaque entrée
+      allEntries.forEach(entry => {
+        entry.linksCount = (liens || []).filter(l => 
+          (l.element_source_id === entry.id && l.element_source_type === entry.type) ||
+          (l.element_cible_id === entry.id && l.element_cible_type === entry.type)
+        ).length
+      })
+      
+      setEntries(allEntries)
+
+      // Charger les liens spirituels
+      const { data: liensData } = await supabase
+        .from('liens_spirituels')
+        .select('*')
+        .eq('user_id', user.id)
+      
+      setSpiritualLinks(liensData || [])    } catch (error) {
+      console.error('Erreur lors du chargement:', error)
+      setError('Erreur lors du chargement des données')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function filterEntries() {
+    let filtered = [...entries]
+
+    // Filtre par période
+    const periodMap: Record<string, number | null> = {
+      '1week': 7,
+      '1month': 30,
+      '3months': 90,
+      '6months': 180,
+      '1year': 365,
+      'all': null
+    }
+
+    if (periodMap[selectedPeriod]) {
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - periodMap[selectedPeriod])
+      filtered = filtered.filter(e => new Date(e.date) >= startDate)
+    }
+
+    // Filtre par type
+    if (!selectedTypes.includes('all')) {
+      filtered = filtered.filter(e => selectedTypes.includes(e.type))
+    }
+
+    setFilteredEntries(filtered)
+  }
+
+  const getTypeConfig = (type: string) => {
+    const configs: Record<string, any> = {
+      grace: { emoji: "✨", icon: Sparkles, color: '#FCD34D', gradient: 'linear-gradient(135deg, #FEF3C7, #FDE68A)', label: 'Grâce' },
+      priere: { emoji: "🙏", emoji: "❤️", color: '#818CF8', gradient: 'linear-gradient(135deg, #E0E7FF, #C7D2FE)', label: 'Prière' },
+      ecriture: { emoji: "📖", icon: BookOpen, color: '#34D399', gradient: 'linear-gradient(135deg, #D1FAE5, #A7F3D0)', label: 'Écriture' },
+      parole: { emoji: "🕊️", icon: MessageSquare, color: '#60A5FA', gradient: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)', label: 'Parole' },
+      rencontre: { emoji: "🤝", icon: Users, color: '#F87171', gradient: 'linear-gradient(135deg, #FCE7F3, #FBCFE8)', label: 'Rencontre' }
+    }
+    return configs[type] || { emoji: "✨", icon: Sparkles, color: '#6b7280', gradient: 'linear-gradient(135deg, #6b7280, #4b5563)', label: 'Autre' }
+  }
+
+  const getSuggestions = () => {
+    const suggestions = []
+    const now = new Date()
+    
+    // Analyser les patterns
+    const graceCount = filteredEntries.filter(e => e.type === 'grace').length
+    const accomplishedParoles = filteredEntries.filter(e => e.type === 'parole' && e.date_accomplissement).length
+    
+    if (graceCount > 5) {
+      suggestions.push({
+        emoji: "✨",
+        text: `${graceCount} grâces reçues sur cette période. Deo gratias !`,
+        color: '#FCD34D'
+      })
+    }
+    
+    if (accomplishedParoles > 0) {
+      suggestions.push({
+        emoji: "🕊️",
+        text: `${accomplishedParoles} parole${accomplishedParoles > 1 ? 's' : ''} accomplie${accomplishedParoles > 1 ? 's' : ''}. L'Esprit Saint est à l'œuvre.`,
+        color: '#60A5FA'
+      })
+    }
+    
+    // Suggestions de suivi - Rappels doux
+    const oldPrayers = entries.filter(e => 
+      e.type === 'priere' && 
+      differenceInDays(now, new Date(e.date)) > 90
+    )
+    
+    if (oldPrayers.length > 0 && Math.random() < 0.3) { // 30% de chance d'afficher
+      const prayer = oldPrayers[Math.floor(Math.random() * oldPrayers.length)]
+      suggestions.push({
+        emoji: "🙏",
+        text: `${prayer.personne_prenom}, pour qui tu as prié, traverse peut-être ton esprit aujourd'hui...`,
+        color: '#818CF8',
+        action: 'Prendre des nouvelles'
+      })
+    }
+    
+    // Détecter les liens possibles
+    const recentPrayers = filteredEntries.filter(e => e.type === 'priere' && new Date(e.date) > subMonths(now, 1))
+    const recentGraces = filteredEntries.filter(e => e.type === 'grace' && new Date(e.date) > subMonths(now, 1))
+    
+    if (recentPrayers.length > 0 && recentGraces.length > 0) {
+      suggestions.push({
+        icon: LinkIcon,
+        text: "Certaines prières récentes semblent avoir porté du fruit...",
+        color: '#D6E5F5',
+        action: 'Discerner les liens'
+      })
+    }
+    
+    // Pattern spirituel détecté
+    const rencontresWithSimilarContext = entries.filter(e => e.type === 'rencontre').reduce((acc, r) => {
+      acc[r.contexte] = (acc[r.contexte] || 0) + 1
+      return acc
+    }, {})
+    
+    const mostFrequentContext = Object.entries(rencontresWithSimilarContext)
+      .sort(([,a], [,b]) => b - a)[0]
+    
+    if (mostFrequentContext && mostFrequentContext[1] > 3) {
+      suggestions.push({
+        icon: Compass,
+        text: `L'Esprit semble t'envoyer souvent ${mostFrequentContext[0] === 'rue' ? 'dans la rue' : mostFrequentContext[0]}...`,
+        color: '#F87171'
+      })
+    }
+    
+    return suggestions
+  }
+
+  const findPossibleLinks = (entry: any) => {
+    const links = []
+    const entryDate = new Date(entry.date)
+    
+    // Chercher des liens potentiels
+    entries.forEach(e => {
+      if (e.id === entry.id) return
+      
+      const eDate = new Date(e.date)
+      const daysDiff = Math.abs(differenceInDays(entryDate, eDate))
+      
+      // Prière exaucée par une grâce
+      if (entry.type === 'priere' && e.type === 'grace' && daysDiff < 90 && eDate > entryDate) {
+        // Vérifier si les sujets correspondent
+        const prayerKeywords = entry.sujet?.toLowerCase().split(' ') || []
+        const graceText = (e.texte || '').toLowerCase()
+        const hasMatch = prayerKeywords.some(word => word.length > 3 && graceText.includes(word))
+        
+        if (hasMatch || daysDiff < 30) {
+          links.push({
+            entry: e,
+            type: 'exauce',
+            label: 'Cette prière semble avoir été exaucée dans...',
+            strength: hasMatch ? 'fort' : 'possible',
+            explanation: `Prière du ${format(entryDate, 'dd MMM', { locale: fr })} → Grâce du ${format(eDate, 'dd MMM', { locale: fr })} (${daysDiff} jours après)`
+          })
+        }
+      }
+      
+      // Parole accomplie dans un événement
+      if (entry.type === 'parole' && !entry.date_accomplissement && daysDiff < 180 && eDate > entryDate) {
+        links.push({
+          entry: e,
+          type: 'accomplit',
+          label: 'Cette parole pourrait s\'être accomplie dans...',
+          strength: 'possible',
+          explanation: `Parole reçue il y a ${daysDiff} jours`
+        })
+      }
+      
+      // Écriture qui éclaire une situation
+      if (entry.type === 'ecriture' && daysDiff < 7) {
+        links.push({
+          entry: e,
+          type: 'eclaire',
+          label: 'Cette Parole de Dieu éclaire peut-être...',
+          strength: 'possible',
+          explanation: `Lecture et événement séparés de ${daysDiff} jour${daysDiff > 1 ? 's' : ''}`
+        })
+      }
+      
+      // Grâce qui découle d'une prière
+      if (entry.type === 'grace' && e.type === 'priere' && daysDiff < 90 && eDate < entryDate) {
+        links.push({
+          entry: e,
+          type: 'decoule',
+          label: 'Cette grâce pourrait être le fruit de...',
+          strength: daysDiff < 30 ? 'fort' : 'possible',
+          explanation: `${daysDiff} jours après la prière`
+        })
+      }
+    })
+    
+    return links.sort((a, b) => {
+      // Trier par force puis par date
+      if (a.strength === 'fort' && b.strength !== 'fort') return -1
+      if (a.strength !== 'fort' && b.strength === 'fort') return 1
+      return 0
+    })
+  }
+
+  const handleLinkClick = (entry: any) => {
+    if (linkMode) {
+      if (!firstSelectedEntry) {
+        setFirstSelectedEntry(entry)
+      } else {
+        // Créer le lien entre les deux entrées
+        setSelectedEntryForLink(firstSelectedEntry)
+        setPossibleLinks([{
+          entry: entry,
+          type: 'echo',
+          label: 'Lien créé manuellement',
+          strength: 'fort',
+          explanation: 'Vous avez identifié un lien spirituel'
+        }])
+        setShowLinkModal(true)
+        setLinkMode(false)
+        setFirstSelectedEntry(null)
+      }
+    } else {
+      setSelectedEntryForLink(entry)
+      setShowLinkModal(true)
+    }
+  }
+
+  const saveSpiritualLink = async (fromEntry: Entry, toEntry: Entry, linkType: string, label: string, notes?: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from('liens_spirituels')
+        .insert({
+          user_id: user.id,
+          element_source_type: fromEntry.type,
+          element_source_id: fromEntry.id,
+          element_cible_type: toEntry.type,
+          element_cible_id: toEntry.id,
+          type_lien: linkType,
+          description: `${label}${notes ? ' - ' + notes : ''}`
+        })
+
+      if (error) {
+        console.error('Erreur lors de la sauvegarde du lien:', error)
+        alert('Erreur lors de la sauvegarde du lien')
+      } else {
+        alert('Lien spirituel créé avec succès !')
+        setShowLinkModal(false)
+        loadAllEntries()
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+    }
+  }
+
+  const getEntryText = (entry: any) => {
+    return entry.texte || entry.description || entry.sujet || entry.reference || 
+           (entry.type === 'priere' ? `Prière pour ${entry.personne_prenom}` : 'Entrée')
+  }
+
+  const areEntriesLinked = (entry1: any, entry2: any) => {
+    return spiritualLinks.some(link => 
+      (link.element_source_id === entry1.id && link.element_source_type === entry1.type &&
+       link.element_cible_id === entry2.id && link.element_cible_type === entry2.type) ||
+      (link.element_source_id === entry2.id && link.element_source_type === entry2.type &&
+       link.element_cible_id === entry1.id && link.element_cible_type === entry1.type)
+    )
+  }
+
+
+
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#E0F2FE',
+        padding: '2rem 1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '3rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center'
+        }}>
+          <Sparkles size={48} style={{ color: '#D6E5F5', margin: '0 auto 1rem', animation: 'pulse 2s ease-in-out infinite' }} />
+          <p style={{ color: '#6b7280' }}>Préparation de votre relecture spirituelle...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const suggestions = getSuggestions()
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#E0F2FE',
+      paddingBottom: '4rem'
+    }}>      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
+        {/* En-tête avec fond bleu pastel */}
+        <div style={{
+          background: 'linear-gradient(135deg, #E0F2FE, #D6E5F5)',
+          borderRadius: '1rem',
+          padding: '2rem',
+          marginBottom: '2rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+        }}>
+          <Link href="/dashboard" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#4B6BAF',
+            textDecoration: 'none',
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
+            opacity: 0.8,
+            transition: 'opacity 0.2s'
+          }}>
+            <ArrowLeft size={16} />
+            Retour au tableau de bord
+          </Link>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem'
+          }}>
+            <div>
+              <h1 style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#4B6BAF',
+                marginBottom: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{
+                    background: 'white',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    marginRight: '1rem'
+                  }}>
+                    🌿
+                  </div>
+                  Relecture spirituelle
+                </div>
+              </h1>
+              <p style={{ color: '#5B7BBF', opacity: 0.9, fontStyle: 'italic' }}>
+                "Chercher et trouver Dieu en toutes choses"
+              </p>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'center'
+            }}>
+              <div style={{
+                textAlign: 'center',
+                padding: '0.5rem 1rem',
+                background: 'rgba(255, 255, 255, 0.5)',
+                borderRadius: '0.5rem'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4B6BAF' }}>
+                  {entries.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#5B7BBF' }}>
+                  moments notés
+                </div>
+              </div>
+              <div style={{
+                textAlign: 'center',
+                padding: '0.5rem 1rem',
+                background: 'rgba(255, 255, 255, 0.5)',
+                borderRadius: '0.5rem'
+              }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4B6BAF' }}>
+                  {filteredEntries.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#5B7BBF' }}>
+                  dans cette période
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
+        {/* Barre d'outils */}
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '1rem',
+          marginBottom: '1rem',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => setViewMode('gestion')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: viewMode === 'gestion' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'gestion' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s',
+              marginRight: 'auto'
+            }}
+          >
+            🔗
+            Gestion des liens
+          </button>
+
+            <button
+              onClick={() => {
+                setLinkMode(!linkMode)
+                setFirstSelectedEntry(null)
+              }}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                background: linkMode ? '#7BA7E1' : '#f3f4f6',
+                color: linkMode ? 'white' : '#4b5563',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              <LinkIcon size={16} />
+              Mode Lien {linkMode && '(actif)'}
+            </button>
+          </div>
+          {linkMode && (
+            <p style={{ fontSize: '0.875rem', color: '#A3C4E8', fontStyle: 'italic' }}>
+              {firstSelectedEntry 
+                ? `Sélectionnez le second élément à relier avec "${getEntryText(firstSelectedEntry).substring(0, 30)}..."`
+                : 'Cliquez sur un premier élément à relier'}
+            </p>
+          )}
+        </div>
+
+        {/* Modes de vue */}
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '1rem',
+          marginBottom: '2rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => setViewMode('chronologique')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'chronologique' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'chronologique' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Calendar size={16} />
+            Vue chronologique
+          </button>
+          <button
+            onClick={() => setViewMode('thematique')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'thematique' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'thematique' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <BookOpen size={16} />
+            Vue thématique
+          </button>
+          <button
+            onClick={() => setViewMode('consolations')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'consolations' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'consolations' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <span style={{fontSize: "16px"}}>❤️</span>
+            Consolations & désolations
+          </button>
+          <button
+            onClick={() => setViewMode('jardin')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'jardin' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'jardin' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Flower size={16} />
+            Jardin des grâces
+          </button>
+          
+          
+        </div>
+
+        {/* Filtres élégants */}
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '1.5rem',
+          marginBottom: '2rem',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <Filter size={20} style={{ color: '#6b7280' }} />
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>Filtrer ma relecture</h3>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>Période</label>
+              <select 
+                className="select"
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+              >
+                <option value="1week">Cette semaine</option>
+                <option value="1month">Ce mois</option>
+                <option value="3months">3 derniers mois</option>
+                <option value="6months">6 derniers mois</option>
+                <option value="1year">Cette année</option>
+                <option value="all">Tout voir</option>
+              </select>
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>Types d'entrées</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <button
+                  onClick={() => setSelectedTypes(['all'])}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '9999px',
+                    border: 'none',
+                    background: selectedTypes.includes('all') ? '#7BA7E1' : '#e5e7eb',
+                    color: selectedTypes.includes('all') ? 'white' : '#6b7280',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Tout
+                </button>
+                {['grace', 'priere', 'ecriture', 'parole', 'rencontre'].map(type => {
+                  const config = getTypeConfig(type)
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        if (selectedTypes.includes('all')) {
+                          setSelectedTypes([type])
+                        } else if (selectedTypes.includes(type)) {
+                          setSelectedTypes(selectedTypes.filter(t => t !== type))
+                        } else {
+                          setSelectedTypes([...selectedTypes, type])
+                        }
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        background: selectedTypes.includes(type) || selectedTypes.includes('all') ? config.color : '#e5e7eb',
+                        color: selectedTypes.includes(type) || selectedTypes.includes('all') ? 'white' : '#6b7280',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {config.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section "L'Esprit Saint est à l'œuvre" - Plus visible */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div style={{
+            background: 'white',
+            borderRadius: '1rem',
+            marginBottom: '2rem',
+            overflow: 'hidden',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          }}>
+            {/* En-tête coloré */}
+            <div style={{
+              background: 'linear-gradient(135deg, #A3C4E8, #D6E5F5)',
+              padding: '1rem 1.5rem',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <h3 style={{ 
+                fontSize: '1.125rem', 
+                fontWeight: '600', 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: 0
+              }}>
+                <span style={{fontSize: "20px"}}>🕊️</span>
+                L'Esprit Saint est à l'œuvre
+              </h3>
+              <button
+                onClick={() => setShowSuggestions(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '1.25rem',
+                  opacity: 0.8
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Contenu des suggestions */}
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ 
+                color: '#6b7280', 
+                fontSize: '0.875rem', 
+                marginBottom: '1rem',
+                fontStyle: 'italic'
+              }}>
+                L'Esprit souffle et révèle des connexions dans votre vie spirituelle...
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {suggestions.map((suggestion, index) => {
+                  // Icon remplacé par emoji
+                  return (
+                    <div 
+                      key={index}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '1rem',
+                        background: '#f9fafb',
+                        borderRadius: '0.75rem',
+                        border: '1px solid #e5e7eb',
+                        cursor: suggestion.action ? 'pointer' : 'default',
+                        transition: 'all 0.2s',
+                        ':hover': {
+                          borderColor: suggestion.color,
+                          transform: 'translateY(-1px)'
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = suggestion.color
+                        e.currentTarget.style.transform = 'translateY(-1px)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '#e5e7eb'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                      }}
+                    >
+                      <div style={{
+                        background: suggestion.color + '20',
+                        padding: '0.5rem',
+                        borderRadius: '0.5rem',
+                        flexShrink: 0
+                      }}>
+                        <span style={{fontSize: "20px", color: suggestion.color}}>{suggestion.emoji || "✨"}</span>
+                      </div>
+                      <p style={{ color: '#1f2937', fontSize: '0.875rem', margin: 0, flex: 1 }}>
+                        {suggestion.text}
+                      </p>
+                      {suggestion.action && (
+                        <ChevronRight size={16} style={{ color: '#6b7280', flexShrink: 0 }} />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Timeline spirituelle - Vue chronologique */}
+        {viewMode === 'chronologique' && (
+          <div style={{ position: 'relative' }}>
+            {/* Ligne centrale */}
+            {filteredEntries.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                left: '50%',
+                top: 0,
+                bottom: 0,
+                width: '2px',
+                background: 'linear-gradient(to bottom, #e5e7eb, #A3C4E8, #e5e7eb)',
+                transform: 'translateX(-50%)'
+              }} />
+            )}
+
+            {/* Entrées */}
+            {filteredEntries.map((entry, index) => {
+              const config = getTypeConfig(entry.type)
+              const Icon = config.icon
+              const isExpanded = expandedEntry === entry.id
+              const isLeft = index % 2 === 0
+              const isSelected = firstSelectedEntry?.id === entry.id
+
+              return (
+                <div
+                  key={entry.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: isLeft ? 'flex-end' : 'flex-start',
+                    marginBottom: '2rem',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Connecteur */}
+                  <div style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '2rem',
+                    width: '20px',
+                    height: '20px',
+                    background: config.gradient,
+                    borderRadius: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    boxShadow: '0 0 0 4px white, 0 0 0 6px ' + config.color + '30',
+                    zIndex: 1
+                  }} />
+
+                  {/* Carte */}
+                  <div 
+                    style={{
+                      width: '45%',
+                      background: 'white',
+                      borderRadius: '1rem',
+                      padding: '1.5rem',
+                      boxShadow: isSelected ? `0 0 0 3px ${config.color}40` : '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      transform: isExpanded ? 'scale(1.02)' : 'scale(1)',
+                      marginRight: isLeft ? '2.5rem' : '0',
+                      marginLeft: isLeft ? '0' : '2.5rem'
+                    }}
+                    onClick={() => {
+                      if (linkMode) {
+                        handleLinkClick(entry)
+                      } else {
+                        setExpandedEntry(isExpanded ? null : entry.id)
+                      }
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'start', gap: '1rem' }}>
+                      <div style={{
+                        background: config.gradient,
+                        padding: '0.75rem',
+                        borderRadius: '0.75rem',
+                        color: 'white',
+                        flexShrink: 0
+                      }}>
+                        <span style={{fontSize: "20px"}}>{config.emoji}</span>
+                      </div>
+                      
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'start',
+                          marginBottom: '0.5rem'
+                        }}>
+                          <h4 style={{ 
+                            color: '#1f2937', 
+                            fontWeight: '600',
+                            fontSize: '1rem'
+                          }}>
+                            {config.label}
+                          </h4>
+                          <time style={{ 
+                            fontSize: '0.75rem', 
+                            color: '#6b7280' 
+                          }}>
+                            {format(parseISO(entry.date), 'dd MMM', { locale: fr })}
+                          </time>
+                        </div>
+                        
+                        <p style={{ 
+                          color: '#4b5563',
+                          fontSize: '0.875rem',
+                          lineHeight: '1.5',
+                          marginBottom: isExpanded ? '1rem' : '0',
+                          display: '-webkit-box',
+                          WebkitLineClamp: isExpanded ? 'none' : 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {getEntryText(entry)}
+                        </p>
+                        
+                        {isExpanded && (
+                          <div style={{
+                            borderTop: '1px solid #e5e7eb',
+                            paddingTop: '1rem',
+                            marginTop: '1rem'
+                          }}>
+                            {entry.lieu && (
+                              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                                📍 {entry.lieu}
+                              </p>
+                            )}
+                            {entry.tags && entry.tags.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginBottom: '0.5rem' }}>
+                                {entry.tags.map((tag: string, i: number) => (
+                                  <span 
+                                    key={i}
+                                    style={{
+                                      background: config.color + '20',
+                                      color: config.color,
+                                      padding: '0.125rem 0.5rem',
+                                      borderRadius: '9999px',
+                                      fontSize: '0.75rem'
+                                    }}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                              <Link
+                                href={`/${entry.type}s/${entry.id}`}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem',
+                                  color: config.color,
+                                  fontSize: '0.875rem',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <Eye size={14} />
+                                Voir le détail
+                              </Link>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSelectedEntryForLink(entry)
+                                  setShowLinkModal(true)
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem',
+                                  color: '#D6E5F5',
+                                  fontSize: '0.875rem',
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '0.25rem',
+                                  transition: 'background 0.2s'
+                                }}
+                              >
+                                <LinkIcon size={14} />
+                                Relier
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Vue thématique */}
+        {viewMode === 'thematique' && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: '2rem'
+          }}>
+            {['grace', 'priere', 'ecriture', 'parole', 'rencontre'].map(type => {
+              const config = getTypeConfig(type)
+              const Icon = config.icon
+              const typeEntries = filteredEntries.filter(e => e.type === type)
+              
+              if (typeEntries.length === 0) return null
+              
+              return (
+                <div
+                  key={type}
+                  style={{
+                    background: 'white',
+                    borderRadius: '1rem',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  <div style={{
+                    background: config.gradient,
+                    padding: '1.5rem',
+                    color: 'white'
+                  }}>
+                    <h3 style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      <span style={{fontSize: "24px"}}>{config.emoji}</span>
+                      {config.label}s ({typeEntries.length})
+                    </h3>
+                  </div>
+                  <div style={{ padding: '1rem', maxHeight: '400px', overflow: 'auto' }}>
+                    {typeEntries.slice(0, 5).map(entry => {
+                      const isSelected = firstSelectedEntry?.id === entry.id
+                      return (
+                        <div
+                          key={entry.id}
+                          style={{
+                            padding: '0.75rem',
+                            borderBottom: '1px solid #e5e7eb',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            background: isSelected ? config.color + '10' : 'transparent',
+                            borderLeft: isSelected ? `4px solid ${config.color}` : '4px solid transparent'
+                          }}
+                          onClick={() => handleLinkClick(entry)}
+                        >
+                          <p style={{
+                            fontSize: '0.875rem',
+                            color: '#4b5563',
+                            marginBottom: '0.25rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {getEntryText(entry)}
+                          </p>
+                          <time style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                            {format(parseISO(entry.date), 'dd MMM yyyy', { locale: fr })}
+                          </time>
+                        </div>
+                      )
+                    })}
+                    {typeEntries.length > 5 && (
+                      <p style={{
+                        textAlign: 'center',
+                        padding: '0.75rem',
+                        color: '#6b7280',
+                        fontSize: '0.875rem'
+                      }}>
+                        Et {typeEntries.length - 5} autres...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Vue Consolations & Désolations */}
+        {viewMode === 'consolations' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            {/* Consolations */}
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: '#10b981',
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{fontSize: "24px"}}>❤️</span>
+                Consolations
+              </h3>
+              <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
+                Moments où j'ai senti la présence de Dieu
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {filteredEntries
+                  .filter(e => e.type === 'grace' || (e.type === 'parole' && e.date_accomplissement))
+                  .slice(0, 5)
+                  .map(entry => {
+                    const config = getTypeConfig(entry.type)
+                    const Icon = config.icon
+                    const isSelected = firstSelectedEntry?.id === entry.id
+                    return (
+                      <div
+                        key={entry.id}
+                        style={{
+                          border: '2px solid',
+                          borderColor: isSelected ? config.color : '#d1fae5',
+                          borderRadius: '0.5rem',
+                          padding: '1rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          background: isSelected ? config.color + '10' : 'white'
+                        }}
+                        onClick={() => handleLinkClick(entry)}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
+                          <span style={{fontSize: "16px",  color: config.color, marginTop: '2px' }}>{config.emoji}</span>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>
+                              {getEntryText(entry)}
+                            </p>
+                            <time style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                              {format(parseISO(entry.date), 'dd MMM', { locale: fr })}
+                            </time>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+
+            {/* Désolations / Attentes */}
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: '#818CF8',
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <Cross size={24} />
+                En attente
+              </h3>
+              <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
+                Prières et paroles en cours
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {filteredEntries
+                  .filter(e => e.type === 'priere' || (e.type === 'parole' && !e.date_accomplissement))
+                  .slice(0, 5)
+                  .map(entry => {
+                    const config = getTypeConfig(entry.type)
+                    const Icon = config.icon
+                    const isSelected = firstSelectedEntry?.id === entry.id
+                    return (
+                      <div
+                        key={entry.id}
+                        style={{
+                          border: '2px solid',
+                          borderColor: isSelected ? config.color : '#e0e7ff',
+                          borderRadius: '0.5rem',
+                          padding: '1rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          background: isSelected ? config.color + '10' : 'white'
+                        }}
+                        onClick={() => handleLinkClick(entry)}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
+                          <span style={{fontSize: "16px",  color: config.color, marginTop: '2px' }}>{config.emoji}</span>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>
+                              {getEntryText(entry)}
+                            </p>
+                            <time style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                              {format(parseISO(entry.date), 'dd MMM', { locale: fr })}
+                            </time>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Vue Jardin des grâces - Avec bulles animées */}
+        
+
+        {/* Vue d'ensemble - Visualisation globale */}
+        {viewMode === 'ensemble' && (
+          <div style={{ marginTop: '2rem' }}>
+            {/* En-tête */}
+            <div style={{
+              background: 'linear-gradient(135deg, #E6EDFF 0%, #F0F4FF 50%, #E6EDFF 100%)',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              marginBottom: '2rem',
+              border: '1px solid #D6E5F5'
+            }}>
+              <h3 style={{ 
+                color: '#7BA7E1',
+                marginBottom: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                👁️ Vue d'ensemble
+              </h3>
+              <p style={{ color: '#6b7280', margin: 0 }}>
+                Visualisez tous vos éléments spirituels et leurs connexions.
+                {linkMode ? ' Cliquez sur une carte pour créer un lien.' : ' Activez le Mode Lien pour créer des connexions.'}
+              </p>
+            </div>
+
+            {/* Grille de cartes */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '1.5rem'
+            }}>
+              {filteredEntries.map(entry => {
+                const config = getTypeConfig(entry.type);
+                const isSource = selectedEntryForLink?.id === entry.id;
+                
+                return (
+                  <div
+                    key={entry.id}
+                    onClick={() => {
+                      if (linkMode) {
+                        handleLinkClick(entry);
+                      }
+                    }}
+                    style={{
+                      background: 'white',
+                      borderRadius: '1rem',
+                      padding: '1.5rem',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                      border: isSource ? '3px solid #7BA7E1' : (entry.linksCount > 0 ? '2px solid #D6E5F5' : '2px solid transparent'),
+                      cursor: linkMode ? 'pointer' : 'default',
+                      transition: 'all 0.2s',
+                      position: 'relative'
+                    }}
+                  >
+                    {/* Badge nombre de liens */}
+                    {entry.linksCount > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '0.5rem',
+                        right: '0.5rem',
+                        background: '#7BA7E1',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '24px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold'
+                      }}>
+                        {entry.linksCount}
+                      </div>
+                    )}
+                    
+                    {/* Contenu avec emoji */}
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <span style={{ fontSize: '2rem' }}>{config.emoji}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          color: config.color,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          marginBottom: '0.25rem'
+                        }}>
+                          {config.label}
+                        </div>
+                        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                          {getEntryText(entry).substring(0, 50)}...
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                          📅 {format(parseISO(entry.date || entry.created_at), 'dd MMM yyyy', { locale: fr })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Message si aucune entrée */}
+            {filteredEntries.length === 0 && (
+              <div style={{
+                textAlign: 'center',
+                padding: '4rem',
+                color: '#9CA3AF'
+              }}>
+                <p>Aucun élément trouvé.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Vue Gestion des liens */}
+        {viewMode === 'gestion' && (
+          <div style={{ marginTop: '2rem' }}>
+            {/* En-tête */}
+            <div style={{
+              background: 'linear-gradient(135deg, #E6EDFF 0%, #F0F4FF 50%, #E6EDFF 100%)',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              marginBottom: '2rem',
+              border: '1px solid #D6E5F5'
+            }}>
+              <h3 style={{ 
+                color: '#7BA7E1',
+                marginBottom: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                🔗 Gestion des liens spirituels
+              </h3>
+              <p style={{ color: '#6b7280', margin: 0 }}>
+                Visualisez et gérez tous les liens entre vos éléments.
+              </p>
+            </div>
+
+            {/* Liste simplifiée */}
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            }}>
+              <h4 style={{ marginBottom: '1rem', color: '#374151' }}>
+                Liens existants ({spiritualLinks.length})
+              </h4>
+              
+              {spiritualLinks.length > 0 ? (
+                <div>
+                  {spiritualLinks.slice(0, 5).map((link, idx) => (
+                    <div key={idx} style={{
+                      padding: '1rem',
+                      marginBottom: '0.5rem',
+                      background: '#F9FAFB',
+                      borderRadius: '0.5rem'
+                    }}>
+                      Lien {link.type_lien}
+                    </div>
+                  ))}
+                  {spiritualLinks.length > 5 && (
+                    <p style={{ color: '#6B7280', marginTop: '1rem' }}>
+                      Et {spiritualLinks.length - 5} autres liens...
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p style={{ color: '#9CA3AF' }}>
+                  Aucun lien créé. Utilisez le Mode Lien pour commencer.
+                </p>
+              )}
+            </div>
+          </div>
+        )}{viewMode === 'jardin' && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '2rem',
+            perspective: '1000px'
+          }}>
+            {filteredEntries.map((entry, index) => {
+              const config = getTypeConfig(entry.type)
+              const Icon = config.icon
+              const delay = index * 0.1
+              const isSelected = firstSelectedEntry?.id === entry.id
+              
+              return (
+                <div
+                  key={entry.id}
+                  style={{
+                    background: 'white',
+                    borderRadius: '50%',
+                    width: '200px',
+                    height: '200px',
+                    padding: '2rem',
+                    boxShadow: isSelected ? `0 0 0 4px ${config.color}` : '0 8px 16px rgba(0, 0, 0, 0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    transform: 'rotateY(0deg)',
+                    transformStyle: 'preserve-3d',
+                    animation: `float ${3 + Math.random() * 2}s ease-in-out ${delay}s infinite`,
+                    position: 'relative'
+                  }}
+                  onClick={() => handleLinkClick(entry)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)'
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    width: '40px',
+                    height: '40px',
+                    background: config.gradient,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white'
+                  }}>
+                    <span style={{fontSize: "20px"}}>{config.emoji}</span>
+                  </div>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: '#4b5563',
+                    marginTop: '2rem',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical'
+                  }}>
+                    {getEntryText(entry)}
+                  </p>
+                  <time style={{
+                    fontSize: '0.75rem',
+                    color: '#9ca3af',
+                    marginTop: 'auto'
+                  }}>
+                    {format(parseISO(entry.date), 'dd MMM', { locale: fr })}
+                  </time>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Vue Fleuve de vie - Améliorée */}
+        {viewMode === 'fleuve' && (
+          <div>
+            <div style={{
+              background: 'linear-gradient(135deg, #F3E8FF, #D6E5F5)',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              marginBottom: '2rem',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ color: '#A3C4E8', marginBottom: '0.5rem' }}>Le Fleuve de Vie</h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                Visualisez le cours de votre vie spirituelle, comme un fleuve qui s'écoule dans le temps.
+                Chaque moment est une goutte d'eau qui rejoint le courant de la grâce divine.
+              </p>
+            </div>
+
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              minHeight: '500px',
+              position: 'relative',
+              overflow: 'auto'
+            }}>
+              {/* Fleuve ondulant */}
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 0
+                }}
+                viewBox="0 0 1200 500"
+                preserveAspectRatio="none"
+              >
+                <defs>
+                  <linearGradient id="fleuveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#D6E5F5" stopOpacity="0.1" />
+                    <stop offset="50%" stopColor="#6366f1" stopOpacity="0.1" />
+                    <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.1" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d={`M 0 250 Q 300 ${200 + Math.sin(Date.now() / 1000) * 30} 600 250 T 1200 250`}
+                  fill="none"
+                  stroke="url(#fleuveGradient)"
+                  strokeWidth="120"
+                />
+              </svg>
+              
+              {/* Entrées flottantes avec plus d'infos */}
+              {filteredEntries.map((entry, index) => {
+                const config = getTypeConfig(entry.type)
+                const Icon = config.icon
+                const position = (index / (filteredEntries.length - 1 || 1)) * 90 + 5
+                const yOffset = Math.sin(index * 0.8) * 80
+                const isSelected = firstSelectedEntry?.id === entry.id
+                
+                return (
+                  <div
+                    key={entry.id}
+                    style={{
+                      position: 'absolute',
+                      left: `${position}%`,
+                      top: `${50 + yOffset}%`,
+                      transform: 'translate(-50%, -50%)',
+                      background: 'white',
+                      borderRadius: '1rem',
+                      padding: '1.5rem',
+                      boxShadow: isSelected ? `0 0 0 3px ${config.color}40` : '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      zIndex: 1,
+                      minWidth: '200px',
+                      maxWidth: '250px'
+                    }}
+                    onClick={() => handleLinkClick(entry)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.05)'
+                      e.currentTarget.style.zIndex = '10'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'
+                      e.currentTarget.style.zIndex = '1'
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      marginBottom: '0.75rem'
+                    }}>
+                      <div style={{
+                        background: config.gradient,
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        flexShrink: 0
+                      }}>
+                        <span style={{fontSize: "18px"}}>{config.emoji}</span>
+                      </div>
+                      <div>
+                        <p style={{
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          color: config.color,
+                          margin: 0
+                        }}>
+                          {config.label}
+                        </p>
+                        <time style={{
+                          fontSize: '0.75rem',
+                          color: '#6b7280'
+                        }}>
+                          {format(parseISO(entry.date), 'dd MMMM', { locale: fr })}
+                        </time>
+                      </div>
+                    </div>
+                    <p style={{
+                      fontSize: '0.813rem',
+                      color: '#4b5563',
+                      margin: 0,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      lineHeight: '1.4'
+                    }}>
+                      {getEntryText(entry)}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Vue Constellation */}
+        {viewMode === 'constellation' && (
+          <ConstellationView 
+            entries={filteredEntries}
+            links={spiritualLinks}
+            onEntryClick={handleLinkClick}
+            getTypeConfig={getTypeConfig}
+          />
+        )}
+
+
+        {/* Message d'encouragement si vide */}
+        {filteredEntries.length === 0 && (
+          <div style={{
+            background: 'white',
+            borderRadius: '1rem',
+            padding: '4rem 2rem',
+            textAlign: 'center',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
+            <Sparkles size={48} style={{ 
+              margin: '0 auto 1rem', 
+              color: '#D6E5F5',
+              opacity: 0.5
+            }} />
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#1f2937' }}>
+              Aucune entrée pour cette période
+            </h3>
+            <p style={{ color: '#6b7280' }}>
+              Ajustez vos filtres ou commencez à noter les merveilles de Dieu !
+            </p>
+          </div>
+        )}
+
+        {/* Modal de liens spirituels amélioré */}
+        {showLinkModal && selectedEntryForLink && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '1rem'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '80vh',
+              overflow: 'auto'
+            }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>
+                Créer des liens spirituels
+              </h3>
+              
+              {/* Élément sélectionné */}
+              <div style={{
+                background: '#f9fafb',
+                borderRadius: '0.5rem',
+                padding: '1rem',
+                marginBottom: '1.5rem'
+              }}>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                  Élément de départ :
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {(() => {
+                    const config = getTypeConfig(selectedEntryForLink.type)
+                    const Icon = config.icon
+                    return (
+                      <>
+                        <span style={{fontSize: "16px",  color: config.color }}>{config.emoji}</span>
+                        <span style={{ fontSize: '0.875rem', color: '#1f2937', fontWeight: '500' }}>
+                          {getEntryText(selectedEntryForLink)}
+                        </span>
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
+              
+              {/* Onglets */}
+              <div style={{
+                display: 'flex',
+                gap: '1rem',
+                marginBottom: '1.5rem',
+                borderBottom: '2px solid #e5e7eb'
+              }}>
+                <button
+                  onClick={() => setPossibleLinks(findPossibleLinks(selectedEntryForLink))}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: '2px solid #A3C4E8',
+                    color: '#A3C4E8',
+                    cursor: 'pointer',
+                    fontWeight: '600'
+                  }}
+                >
+                  Suggestions automatiques
+                </button>
+                <button
+                  onClick={() => setPossibleLinks(entries.filter(e => e.id !== selectedEntryForLink.id).map(e => ({
+                    entry: e,
+                    type: 'echo',
+                    label: 'Créer un lien manuel',
+                    strength: 'manuel',
+                    explanation: ''
+                  })))}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: '2px solid transparent',
+                    color: '#6b7280',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Tous les éléments
+                </button>
+              </div>
+              
+              <p style={{ color: '#6b7280', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                L'Esprit Saint tisse des liens entre les événements de votre vie. Sélectionnez un élément à relier :
+              </p>
+              
+              {possibleLinks.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflow: 'auto' }}>
+                  {possibleLinks.map((link, index) => {
+                    const config = getTypeConfig(link.entry.type)
+                    const Icon = config.icon
+                    
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          border: '2px solid',
+                          borderColor: link.strength === 'fort' ? config.color : '#e5e7eb',
+                          borderRadius: '0.5rem',
+                          padding: '1rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          background: link.strength === 'fort' ? config.color + '10' : 'white'
+                        }}
+                        onClick={() => {
+                          // Ici on pourrait sauvegarder le lien dans la base de données
+                          saveSpiritualLink(selectedEntryForLink, link.entry, link.type, link.label, link.explanation)
+                          setShowLinkModal(false)
+                        }}
+                      >
+                        {link.label && (
+                          <p style={{
+                            fontSize: '0.875rem',
+                            color: '#A3C4E8',
+                            marginBottom: '0.5rem',
+                            fontStyle: 'italic'
+                          }}>
+                            {link.label}
+                          </p>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          <span style={{fontSize: "16px",  color: config.color }}>{config.emoji}</span>
+                          <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>
+                            {getEntryText(link.entry)}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <time style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                            {format(parseISO(link.entry.date), 'dd MMMM yyyy', { locale: fr })}
+                          </time>
+                          {link.explanation && (
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                              {link.explanation}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>
+                  Aucun lien évident pour le moment. Laissez le temps à l'Esprit Saint de révéler les connexions...
+                </p>
+              )}
+              
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '1rem',
+                marginTop: '2rem'
+              }}>
+                <button
+                  onClick={() => {
+                    setShowLinkModal(false)
+                    setPossibleLinks([])
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: '2px solid #e5e7eb',
+                    background: 'white',
+                    color: '#6b7280',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Citation finale - Psaume uniquement */}
+        <div style={{
+          marginTop: '4rem',
+          padding: '2rem',
+          textAlign: 'center',
+          color: '#6b7280',
+          fontStyle: 'italic'
+        }}>
+          <p style={{ marginBottom: '0.5rem', fontSize: '1.125rem' }}>
+            "Souviens-toi des merveilles qu'il a faites."
+          </p>
+          <p style={{ fontSize: '0.875rem' }}>Psaume 105, 5</p>
+        </div>
+      </div>
+
+      {/* Animation float pour le jardin */}
+      
+      <style jsx global>{`
+        @keyframes glow {
+          0% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
+          50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 30px rgba(168, 85, 247, 0.6); }
+          100% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
+        }
+        
+        .linked-card {
+          animation: glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+      `}</style>
+    </div>
+  )
+}
