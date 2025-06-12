@@ -16,6 +16,16 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/relecture/page.js"
     ],
+    "/(app)/prieres/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(app)/prieres/[id]/page.js"
+    ],
+    "/(app)/prieres/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(app)/prieres/page.js"
+    ],
     "/(app)/ecritures/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -26,25 +36,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/ecritures/[id]/page.js"
     ],
-    "/(app)/rencontres/page": [
+    "/(app)/graces/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/rencontres/page.js"
+      "static/chunks/app/(app)/graces/page.js"
     ],
-    "/(app)/prieres/page": [
+    "/(app)/graces/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/prieres/page.js"
-    ],
-    "/(app)/prieres/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/prieres/[id]/page.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/(app)/graces/[id]/page.js"
     ]
   }
 }

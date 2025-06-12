@@ -1,5 +1,9 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
+  "/(app)/relecture/page": "app/(app)/relecture/page.js",
   "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js",
-  "/(app)/relecture/page": "app/(app)/relecture/page.js"
+  "/(app)/prieres/page": "app/(app)/prieres/page.js",
+  "/(app)/ecritures/page": "app/(app)/ecritures/page.js",
+  "/(app)/graces/page": "app/(app)/graces/page.js",
+  "/(app)/ecritures/[id]/page": "app/(app)/ecritures/[id]/page.js",
+  "/(app)/graces/[id]/page": "app/(app)/graces/[id]/page.js"
 }
