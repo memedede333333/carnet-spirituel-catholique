@@ -16,20 +16,35 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/relecture/page.js"
     ],
-    "/(app)/rencontres/[id]/page": [
+    "/(app)/ecritures/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/rencontres/[id]/page.js"
+      "static/chunks/app/(app)/ecritures/page.js"
+    ],
+    "/(app)/ecritures/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(app)/ecritures/[id]/page.js"
     ],
     "/(app)/rencontres/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/rencontres/page.js"
     ],
+    "/(app)/prieres/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(app)/prieres/page.js"
+    ],
     "/(app)/prieres/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/prieres/[id]/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }

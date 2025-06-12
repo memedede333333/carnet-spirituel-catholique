@@ -120,7 +120,54 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
             padding: '2rem',
             color: '#831843'
           }}>
-            <Link href="/rencontres" style={{
+            {/* Bouton retour conditionnel avec vue */}
+              {(() => {
+                if (typeof window !== 'undefined') {
+                  const relectureState = sessionStorage.getItem('relecture-state');
+                  if (relectureState) {
+                    const state = JSON.parse(relectureState);
+                    return (
+                      <button
+                        onClick={() => {
+                          window.history.back();
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          color: '#7BA7E1',
+                          textDecoration: 'none',
+                          fontSize: '0.875rem',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #E6EDFF',
+                          background: '#F0F4FF',
+                          transition: 'all 0.2s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#E6EDFF';
+                          e.currentTarget.style.borderColor = '#7BA7E1';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#F0F4FF';
+                          e.currentTarget.style.borderColor = '#E6EDFF';
+                        }}
+                      >
+                        <ArrowLeft size={20} />
+                        Retour à la relecture
+                        <span style={{
+                          fontSize: '0.75rem',
+                          opacity: 0.7,
+                          marginLeft: '0.25rem'
+                        }}>
+                          ({state.viewLabel || 'Relecture'})
+                        </span>
+                      </button>
+                    );
+                  }
+                }
+                return <Link href="/rencontres" style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
@@ -133,7 +180,8 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
             }}>
               <ArrowLeft size={16} />
               Retour aux rencontres
-            </Link>
+            </Link>;
+              })()}
 
             <div style={{
               display: 'flex',

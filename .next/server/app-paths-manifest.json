@@ -1,6 +1,5 @@
 {
-  "/(app)/rencontres/[id]/page": "app/(app)/rencontres/[id]/page.js",
-  "/(app)/relecture/page": "app/(app)/relecture/page.js",
-  "/(app)/rencontres/page": "app/(app)/rencontres/page.js",
-  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js",
+  "/(app)/relecture/page": "app/(app)/relecture/page.js"
 }
