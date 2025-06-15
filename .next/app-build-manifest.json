@@ -16,115 +16,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/relecture/page.js"
     ],
-    "/(app)/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/dashboard/page.js"
-    ],
-    "/(app)/prieres/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/prieres/page.js"
-    ],
-    "/(app)/ecritures/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/ecritures/page.js"
-    ],
-    "/(app)/ecritures/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/ecritures/[id]/page.js"
-    ],
-    "/(auth)/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/login/page.js"
-    ],
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
-    ],
-    "/(app)/graces/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/graces/page.js"
-    ],
-    "/(app)/prieres/nouvelle/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/prieres/nouvelle/page.js"
-    ],
-    "/(app)/ecritures/nouvelle/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/ecritures/nouvelle/page.js"
-    ],
-    "/(app)/paroles/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/paroles/page.js"
-    ],
-    "/(app)/paroles/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/paroles/[id]/page.js"
-    ],
-    "/(app)/paroles/[id]/modifier/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/paroles/[id]/modifier/page.js"
-    ],
-    "/(app)/rencontres/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/rencontres/page.js"
-    ],
-    "/(app)/rencontres/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/rencontres/[id]/page.js"
-    ],
-    "/(app)/prieres/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/prieres/[id]/page.js"
-    ],
-    "/(app)/profile/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/profile/page.js"
-    ],
-    "/(app)/rencontres/nouvelle/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/rencontres/nouvelle/page.js"
-    ],
-    "/(auth)/register/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/register/page.js"
-    ],
     "/(app)/graces/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(app)/graces/[id]/page.js"
     ],
-    "/(app)/graces/nouvelle/page": [
+    "/(app)/paroles/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/graces/nouvelle/page.js"
-    ],
-    "/(app)/rencontres/[id]/modifier/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/rencontres/[id]/modifier/page.js"
-    ],
-    "/(app)/prieres/[id]/suivi/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(app)/prieres/[id]/suivi/page.js"
+      "static/chunks/app/(app)/paroles/[id]/page.js"
     ]
   }
 }

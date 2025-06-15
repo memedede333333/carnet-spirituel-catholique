@@ -1,9 +1,6 @@
 {
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(app)/graces/page": "app/(app)/graces/page.js",
-  "/(app)/graces/[id]/page": "app/(app)/graces/[id]/page.js",
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
   "/(app)/relecture/page": "app/(app)/relecture/page.js",
-  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js"
+  "/(app)/graces/[id]/page": "app/(app)/graces/[id]/page.js",
+  "/(app)/paroles/[id]/page": "app/(app)/paroles/[id]/page.js"
 }

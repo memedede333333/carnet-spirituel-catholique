@@ -1654,6 +1654,7 @@ export default function RelecturePage() {
                     >
                       {/* Barre de couleur en haut */}
                       <div style={{
+                        position: 'relative',
                         height: '4px',
                         background: config.gradient
                       }} />
@@ -1833,6 +1834,87 @@ export default function RelecturePage() {
                             </>
                           )}
                         </div>
+                          
+                          {/* Boutons d'action */}
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '0.75rem',
+                            right: '0.75rem',
+                            display: 'flex',
+                            gap: '0.25rem'
+                          }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigateToDetail(entry);
+                              }}
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                border: '1px solid #e5e7eb',
+                                background: 'white',
+                                color: '#6b7280',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = config.color;
+                                e.currentTarget.style.color = 'white';
+                                e.currentTarget.style.borderColor = config.color;
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'white';
+                                e.currentTarget.style.color = '#6b7280';
+                                e.currentTarget.style.borderColor = '#e5e7eb';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              title="Voir les détails"
+                            >
+                              <Eye size={12} />
+                            </button>
+                            
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleLinkClick(entry);
+                              }}
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                border: '1px solid #e5e7eb',
+                                background: 'white',
+                                color: '#6b7280',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#7BA7E1';
+                                e.currentTarget.style.color = 'white';
+                                e.currentTarget.style.borderColor = '#7BA7E1';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'white';
+                                e.currentTarget.style.color = '#6b7280';
+                                e.currentTarget.style.borderColor = '#e5e7eb';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              title="Gérer les liens"
+                            >
+                              <LinkIcon size={12} />
+                            </button>
+                          </div>
                       </div>
                     </div>
                   );
