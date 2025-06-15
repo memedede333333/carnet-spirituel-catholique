@@ -1,9 +1,9 @@
 {
-  "/(app)/relecture/page": "app/(app)/relecture/page.js",
-  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js",
-  "/(app)/prieres/page": "app/(app)/prieres/page.js",
-  "/(app)/ecritures/page": "app/(app)/ecritures/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
   "/(app)/graces/page": "app/(app)/graces/page.js",
-  "/(app)/ecritures/[id]/page": "app/(app)/ecritures/[id]/page.js",
-  "/(app)/graces/[id]/page": "app/(app)/graces/[id]/page.js"
+  "/(app)/graces/[id]/page": "app/(app)/graces/[id]/page.js",
+  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
+  "/(app)/relecture/page": "app/(app)/relecture/page.js",
+  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js"
 }
