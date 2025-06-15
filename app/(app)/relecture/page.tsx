@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Heart, BookOpen, Users, MessageSquare, Filter, Calendar, ChevronRight, Eye, Lightbulb, Zap, Link as LinkIcon, Compass, Cross, Church, Flower, Star, Check, HandHeart, ArrowRight } from 'lucide-react'
+import { ArrowLeft, Sparkles, Heart, BookOpen, Users, MessageSquare, Filter, Calendar, ChevronRight, Eye, Lightbulb, Zap, Link as LinkIcon, Compass, Cross, Church, Flower, Star, Check, HandHeart, ArrowRight, Trash2 } from 'lucide-react'
 import { format, parseISO, isWithinInterval, subMonths, differenceInDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -27,6 +27,12 @@ export default function RelecturePage() {
   const [firstSelectedEntry, setFirstSelectedEntry] = useState<any>(null)
   const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
   const [hoveredEntry, setHoveredEntry] = useState<any>(null)
+  const [gestionFilters, setGestionFilters] = useState({
+    typeLien: 'all',
+    typeSource: 'all',
+    typeCible: 'all',
+    recherche: ''
+  })
   const router = useRouter()
 
   useEffect(() => {
@@ -325,6 +331,62 @@ export default function RelecturePage() {
       setShowLinkModal(true)
     }
   }
+
+  const getFilteredLinks = () => {
+    return spiritualLinks.filter(link => {
+      // Filtre par type de lien
+      if (gestionFilters.typeLien !== 'all' && link.type_lien !== gestionFilters.typeLien) {
+        return false;
+      }
+      
+      // Filtre par type de source
+      if (gestionFilters.typeSource !== 'all') {
+        const sourceEntry = entries.find(e => e.id === link.element_source_id);
+        if (!sourceEntry || sourceEntry.type !== gestionFilters.typeSource) {
+          return false;
+        }
+      }
+      
+      // Filtre par recherche
+      if (gestionFilters.recherche) {
+        const sourceEntry = entries.find(e => e.id === link.element_source_id);
+        const cibleEntry = entries.find(e => e.id === link.element_cible_id);
+        const searchLower = gestionFilters.recherche.toLowerCase();
+        
+        const sourceText = getEntryText(sourceEntry).toLowerCase();
+        const cibleText = getEntryText(cibleEntry).toLowerCase();
+        
+        if (!sourceText.includes(searchLower) && !cibleText.includes(searchLower)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }
+
+  const deleteLink = async (linkId: string) => {
+    try {
+      const { error } = await supabase
+        .from('liens_spirituels')
+        .delete()
+        .eq('id', linkId);
+        
+      if (error) throw error;
+      
+      // Recharger les liens
+      const { data: links } = await supabase
+        .from('liens_spirituels')
+        .select('*')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        
+      setSpiritualLinks(links || []);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      alert('Erreur lors de la suppression du lien');
+    }
+  }
+
 
   const saveSpiritualLink = async (fromEntry: Entry, toEntry: Entry, linkType: string, label: string, notes?: string) => {
     try {
@@ -1937,31 +1999,342 @@ export default function RelecturePage() {
 
         {viewMode === 'gestion' && (
           <div>
+            {/* En-tête avec statistiques */}
             <div style={{
               background: 'linear-gradient(135deg, #E6EDFF, #F0F4FF)',
               borderRadius: '1rem',
               padding: '2rem',
               marginBottom: '2rem',
-              textAlign: 'center'
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
             }}>
-              <h3 style={{ color: '#7BA7E1', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
+              <h3 style={{ 
+                color: '#7BA7E1', 
+                marginBottom: '1rem', 
+                fontSize: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem'
+              }}>
+                <LinkIcon size={24} />
                 Gestion des liens spirituels
               </h3>
-              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                Gérez les connexions entre vos éléments
-              </p>
+              
+              {/* Statistiques */}
+              <div style={{
+                display: 'flex',
+                gap: '2rem',
+                flexWrap: 'wrap',
+                marginTop: '1rem'
+              }}>
+                <div>
+                  <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Total</span>
+                  <p style={{ color: '#7BA7E1', fontSize: '1.5rem', fontWeight: '600', margin: '0' }}>
+                    {spiritualLinks.length} liens
+                  </p>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Types</span>
+                  <p style={{ color: '#7BA7E1', fontSize: '1.5rem', fontWeight: '600', margin: '0' }}>
+                    {new Set(spiritualLinks.map(l => l.type_lien)).size} différents
+                  </p>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Éléments connectés</span>
+                  <p style={{ color: '#7BA7E1', fontSize: '1.5rem', fontWeight: '600', margin: '0' }}>
+                    {new Set([
+                      ...spiritualLinks.map(l => l.element_source_id),
+                      ...spiritualLinks.map(l => l.element_cible_id)
+                    ]).size}
+                  </p>
+                </div>
+              </div>
             </div>
 
+            {/* Barre de filtres */}
             <div style={{
               background: 'white',
               borderRadius: '1rem',
-              padding: '2rem',
-              textAlign: 'center'
+              padding: '1.5rem',
+              marginBottom: '2rem',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'flex',
+              gap: '1rem',
+              flexWrap: 'wrap',
+              alignItems: 'center'
             }}>
-              <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#7BA7E1' }}>
-                {spiritualLinks.length}
-              </p>
-              <p style={{ color: '#6b7280' }}>Liens créés</p>
+              <select
+                value={gestionFilters.typeLien}
+                onChange={(e) => setGestionFilters({...gestionFilters, typeLien: e.target.value})}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #e5e7eb',
+                  fontSize: '0.875rem',
+                  background: 'white'
+                }}
+              >
+                <option value="all">Tous les types</option>
+                <option value="exauce">🙏 Exauce</option>
+                <option value="accomplit">✓ Accomplit</option>
+                <option value="decoule">→ Découle</option>
+                <option value="eclaire">💡 Éclaire</option>
+                <option value="echo">🔄 Écho</option>
+              </select>
+
+              <select
+                value={gestionFilters.typeSource}
+                onChange={(e) => setGestionFilters({...gestionFilters, typeSource: e.target.value})}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #e5e7eb',
+                  fontSize: '0.875rem',
+                  background: 'white'
+                }}
+              >
+                <option value="all">Toutes les sources</option>
+                <option value="grace">✨ Grâces</option>
+                <option value="priere">🙏 Prières</option>
+                <option value="ecriture">📖 Écritures</option>
+                <option value="parole">🕊️ Paroles</option>
+                <option value="rencontre">🤝 Rencontres</option>
+              </select>
+
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={gestionFilters.recherche}
+                onChange={(e) => setGestionFilters({...gestionFilters, recherche: e.target.value})}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #e5e7eb',
+                  fontSize: '0.875rem',
+                  flex: 1,
+                  minWidth: '200px'
+                }}
+              />
+            </div>
+
+            {/* Liste des liens */}
+            <div style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}>
+              {getFilteredLinks().length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '3rem',
+                  color: '#6b7280'
+                }}>
+                  <LinkIcon size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                  <p>Aucun lien spirituel trouvé</p>
+                  <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                    Utilisez le "Mode Lien" pour créer des connexions entre vos éléments
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <div style={{
+                    display: 'grid',
+                    gap: '1rem'
+                  }}>
+                    {getFilteredLinks().map((link) => {
+                      const sourceEntry = entries.find(e => e.id === link.element_source_id);
+                      const cibleEntry = entries.find(e => e.id === link.element_cible_id);
+                      
+                      if (!sourceEntry || !cibleEntry) return null;
+                      
+                      const sourceConfig = getTypeConfig(sourceEntry.type);
+                      const cibleConfig = getTypeConfig(cibleEntry.type);
+                      
+                      return (
+                        <div 
+                          key={link.id}
+                          style={{
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.75rem',
+                            padding: '1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            transition: 'all 0.2s',
+                            cursor: 'pointer'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = '#7BA7E1';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 167, 225, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = '#e5e7eb';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        >
+                          {/* Source */}
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              marginBottom: '0.25rem'
+                            }}>
+                              <span>{sourceConfig.emoji}</span>
+                              <span style={{ 
+                                color: sourceConfig.color, 
+                                fontWeight: '500',
+                                fontSize: '0.875rem'
+                              }}>
+                                {sourceConfig.label}
+                              </span>
+                            </div>
+                            <p style={{ 
+                              margin: 0, 
+                              fontSize: '0.875rem',
+                              color: '#1f2937',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {getEntryText(sourceEntry).substring(0, 50)}...
+                            </p>
+                            <p style={{ 
+                              margin: 0, 
+                              fontSize: '0.75rem',
+                              color: '#6b7280',
+                              marginTop: '0.25rem'
+                            }}>
+                              {format(new Date(sourceEntry.date || sourceEntry.created_at), 'dd MMMM yyyy', { locale: fr })}
+                            </p>
+                          </div>
+
+                          {/* Type de lien */}
+                          <div style={{
+                            padding: '0.5rem 1rem',
+                            background: '#f3f4f6',
+                            borderRadius: '2rem',
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            color: '#4b5563',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {link.type_lien === 'exauce' && '🙏 exauce'}
+                            {link.type_lien === 'accomplit' && '✓ accomplit'}
+                            {link.type_lien === 'decoule' && '→ découle'}
+                            {link.type_lien === 'eclaire' && '💡 éclaire'}
+                            {link.type_lien === 'echo' && '🔄 écho'}
+                          </div>
+
+                          {/* Cible */}
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              marginBottom: '0.25rem'
+                            }}>
+                              <span>{cibleConfig.emoji}</span>
+                              <span style={{ 
+                                color: cibleConfig.color, 
+                                fontWeight: '500',
+                                fontSize: '0.875rem'
+                              }}>
+                                {cibleConfig.label}
+                              </span>
+                            </div>
+                            <p style={{ 
+                              margin: 0, 
+                              fontSize: '0.875rem',
+                              color: '#1f2937',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {getEntryText(cibleEntry).substring(0, 50)}...
+                            </p>
+                            <p style={{ 
+                              margin: 0, 
+                              fontSize: '0.75rem',
+                              color: '#6b7280',
+                              marginTop: '0.25rem'
+                            }}>
+                              {format(new Date(cibleEntry.date || cibleEntry.created_at), 'dd MMMM yyyy', { locale: fr })}
+                            </p>
+                          </div>
+
+                          {/* Actions */}
+                          <div style={{
+                            display: 'flex',
+                            gap: '0.5rem'
+                          }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigateToDetail(sourceEntry);
+                              }}
+                              title="Voir la source"
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: '1px solid #e5e7eb',
+                                background: 'white',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = '#7BA7E1';
+                                e.currentTarget.style.background = '#f0f9ff';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = '#e5e7eb';
+                                e.currentTarget.style.background = 'white';
+                              }}
+                            >
+                              <Eye size={16} color="#6b7280" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm('Supprimer ce lien spirituel ?')) {
+                                  deleteLink(link.id);
+                                }
+                              }}
+                              title="Supprimer le lien"
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: '1px solid #e5e7eb',
+                                background: 'white',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = '#ef4444';
+                                e.currentTarget.style.background = '#fef2f2';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = '#e5e7eb';
+                                e.currentTarget.style.background = 'white';
+                              }}
+                            >
+                              <Trash2 size={16} color="#6b7280" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

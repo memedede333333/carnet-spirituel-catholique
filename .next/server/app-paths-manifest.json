@@ -1,6 +1,4 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/(app)/relecture/page": "app/(app)/relecture/page.js",
-  "/(app)/graces/[id]/page": "app/(app)/graces/[id]/page.js",
-  "/(app)/paroles/[id]/page": "app/(app)/paroles/[id]/page.js"
+  "/(app)/prieres/[id]/page": "app/(app)/prieres/[id]/page.js",
+  "/(app)/relecture/page": "app/(app)/relecture/page.js"
 }
