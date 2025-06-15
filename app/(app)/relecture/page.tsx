@@ -19,7 +19,7 @@ export default function RelecturePage() {
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [expandedEntry, setExpandedEntry] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'fleuve' | 'constellation' | 'ensemble' | 'gestion'>('chronologique')
+  const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'fleuve' | 'constellation' | 'ensemble' | 'gestion' | 'atelier'>('chronologique')
   const [showLinkModal, setShowLinkModal] = useState(false)
   const [selectedEntryForLink, setSelectedEntryForLink] = useState<any>(null)
   const [possibleLinks, setPossibleLinks] = useState<any[]>([])
@@ -33,6 +33,11 @@ export default function RelecturePage() {
     typeCible: 'all',
     recherche: ''
   })
+  const [atelierSourceFilter, setAtelierSourceFilter] = useState('all')
+  const [atelierDestFilter, setAtelierDestFilter] = useState('all')
+  const [selectedSource, setSelectedSource] = useState<any>(null)
+  const [selectedDest, setSelectedDest] = useState<any>(null)
+  const [selectedLinkType, setSelectedLinkType] = useState('exauce')
   const router = useRouter()
 
   useEffect(() => {
@@ -620,6 +625,28 @@ export default function RelecturePage() {
           >
             <LinkIcon size={16} />
             Gestion des liens
+          </button>
+          
+          <button
+            onClick={() => setViewMode('atelier')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'atelier' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'atelier' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              minWidth: 'fit-content'
+            }}
+          >
+            <LinkIcon size={16} />
+            Tisser les liens
           </button>
           </div>
           {linkMode && (
@@ -2360,6 +2387,379 @@ export default function RelecturePage() {
             <p style={{ color: '#6b7280' }}>
               Ajustez vos filtres ou commencez à noter les merveilles de Dieu !
             </p>
+          </div>
+        )}
+
+
+        {viewMode === 'atelier' && (
+          <div>
+            <div style={{
+              background: 'linear-gradient(135deg, #E6EDFF, #F0F4FF)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '2rem',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ 
+                color: '#7BA7E1', 
+                fontSize: '1.5rem',
+                marginBottom: '0.5rem'
+              }}>
+                🔗 Tisser les liens spirituels
+              </h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                L'Esprit révèle les connexions dans votre vie
+              </p>
+            </div>
+            
+            {/* Container principal avec 3 colonnes */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 300px 1fr',
+              gap: '1rem',
+              minHeight: '500px'
+            }}>
+              {/* Colonne Sources */}
+              <div style={{
+                background: 'white',
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              }}>
+                <h4 style={{ 
+                  color: '#4b5563', 
+                  marginBottom: '1rem',
+                  fontSize: '1rem',
+                  fontWeight: '600'
+                }}>
+                  Sources ({entries.filter(e => atelierSourceFilter === 'all' || e.type === atelierSourceFilter).length})
+                </h4>
+                
+                <select
+                  value={atelierSourceFilter}
+                  onChange={(e) => setAtelierSourceFilter(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    marginBottom: '1rem',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  <option value="all">Tous les types</option>
+                  <option value="grace">✨ Grâces</option>
+                  <option value="priere">🙏 Prières</option>
+                  <option value="ecriture">📖 Écritures</option>
+                  <option value="parole">🕊️ Paroles</option>
+                  <option value="rencontre">🤝 Rencontres</option>
+                </select>
+
+                <div style={{
+                  maxHeight: '400px',
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem'
+                }}>
+                  {entries
+                    .filter(e => atelierSourceFilter === 'all' || e.type === atelierSourceFilter)
+                    .map(entry => {
+                      const config = getTypeConfig(entry.type);
+                      const isSelected = selectedSource?.id === entry.id;
+                      
+                      return (
+                        <div
+                          key={entry.id}
+                          onClick={() => setSelectedSource(entry)}
+                          style={{
+                            padding: '0.75rem',
+                            borderRadius: '0.5rem',
+                            border: isSelected ? `2px solid ${config.color}` : '1px solid #e5e7eb',
+                            background: isSelected ? config.color + '10' : 'white',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = config.color;
+                              e.currentTarget.style.transform = 'translateX(4px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = '#e5e7eb';
+                              e.currentTarget.style.transform = 'translateX(0)';
+                            }
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1.25rem' }}>{config.emoji}</span>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ 
+                                fontSize: '0.875rem', 
+                                color: '#1f2937',
+                                marginBottom: '0.25rem'
+                              }}>
+                                {getEntryText(entry).substring(0, 80)}...
+                              </p>
+                              <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                {format(new Date(entry.date || entry.created_at), 'dd/MM/yyyy', { locale: fr })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Zone centrale */}
+              <div style={{
+                background: 'linear-gradient(to bottom, #f9fafb, white)',
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                border: '2px dashed #e5e7eb',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '1rem'
+              }}>
+                {selectedSource ? (
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.5rem',
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb',
+                    width: '100%',
+                    position: 'relative'
+                  }}>
+                    <button
+                      onClick={() => setSelectedSource(null)}
+                      style={{
+                        position: 'absolute',
+                        top: '0.5rem',
+                        right: '0.5rem',
+                        background: 'none',
+                        border: 'none',
+                        color: '#6b7280',
+                        cursor: 'pointer',
+                        fontSize: '1.25rem'
+                      }}
+                    >
+                      ×
+                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <span>{getTypeConfig(selectedSource.type).emoji}</span>
+                      <p style={{ fontSize: '0.875rem', color: '#1f2937' }}>
+                        {getEntryText(selectedSource).substring(0, 50)}...
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <LinkIcon size={48} style={{ color: '#e5e7eb', marginBottom: '1rem' }} />
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      Sélectionnez une source
+                    </p>
+                  </div>
+                )}
+
+                <p style={{ color: '#9ca3af', fontSize: '1.5rem' }}>↓</p>
+
+                <select
+                  value={selectedLinkType}
+                  onChange={(e) => setSelectedLinkType(e.target.value)}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '0.875rem',
+                    background: 'white',
+                    minWidth: '200px'
+                  }}
+                >
+                  <option value="exauce">🙏 Exauce</option>
+                  <option value="accomplit">✓ Accomplit</option>
+                  <option value="decoule">→ Découle de</option>
+                  <option value="eclaire">💡 Éclaire</option>
+                  <option value="echo">🔄 Fait écho à</option>
+                </select>
+
+                <p style={{ color: '#9ca3af', fontSize: '1.5rem' }}>↓</p>
+
+                {selectedDest ? (
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.5rem',
+                    padding: '1rem',
+                    border: '1px solid #e5e7eb',
+                    width: '100%',
+                    position: 'relative'
+                  }}>
+                    <button
+                      onClick={() => setSelectedDest(null)}
+                      style={{
+                        position: 'absolute',
+                        top: '0.5rem',
+                        right: '0.5rem',
+                        background: 'none',
+                        border: 'none',
+                        color: '#6b7280',
+                        cursor: 'pointer',
+                        fontSize: '1.25rem'
+                      }}
+                    >
+                      ×
+                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <span>{getTypeConfig(selectedDest.type).emoji}</span>
+                      <p style={{ fontSize: '0.875rem', color: '#1f2937' }}>
+                        {getEntryText(selectedDest).substring(0, 50)}...
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      Sélectionnez une destination
+                    </p>
+                  </div>
+                )}
+
+                {selectedSource && selectedDest && (
+                  <button
+                    onClick={() => {
+                      saveSpiritualLink(selectedSource, selectedDest, selectedLinkType, 
+                        `${getTypeConfig(selectedSource.type).label} ${selectedLinkType} ${getTypeConfig(selectedDest.type).label}`
+                      );
+                      setSelectedSource(null);
+                      setSelectedDest(null);
+                    }}
+                    style={{
+                      marginTop: '1rem',
+                      padding: '0.75rem 2rem',
+                      background: 'linear-gradient(135deg, #7BA7E1, #5B8BC6)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 167, 225, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    Créer le lien spirituel
+                  </button>
+                )}
+              </div>
+
+              {/* Colonne Destinations */}
+              <div style={{
+                background: 'white',
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              }}>
+                <h4 style={{ 
+                  color: '#4b5563', 
+                  marginBottom: '1rem',
+                  fontSize: '1rem',
+                  fontWeight: '600'
+                }}>
+                  Destinations ({entries.filter(e => atelierDestFilter === 'all' || e.type === atelierDestFilter).length})
+                </h4>
+                
+                <select
+                  value={atelierDestFilter}
+                  onChange={(e) => setAtelierDestFilter(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    marginBottom: '1rem',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  <option value="all">Tous les types</option>
+                  <option value="grace">✨ Grâces</option>
+                  <option value="priere">🙏 Prières</option>
+                  <option value="ecriture">📖 Écritures</option>
+                  <option value="parole">🕊️ Paroles</option>
+                  <option value="rencontre">🤝 Rencontres</option>
+                </select>
+
+                <div style={{
+                  maxHeight: '400px',
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem'
+                }}>
+                  {entries
+                    .filter(e => atelierDestFilter === 'all' || e.type === atelierDestFilter)
+                    .map(entry => {
+                      const config = getTypeConfig(entry.type);
+                      const isSelected = selectedDest?.id === entry.id;
+                      
+                      return (
+                        <div
+                          key={entry.id}
+                          onClick={() => setSelectedDest(entry)}
+                          style={{
+                            padding: '0.75rem',
+                            borderRadius: '0.5rem',
+                            border: isSelected ? `2px solid ${config.color}` : '1px solid #e5e7eb',
+                            background: isSelected ? config.color + '10' : 'white',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = config.color;
+                              e.currentTarget.style.transform = 'translateX(-4px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = '#e5e7eb';
+                              e.currentTarget.style.transform = 'translateX(0)';
+                            }
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1.25rem' }}>{config.emoji}</span>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ 
+                                fontSize: '0.875rem', 
+                                color: '#1f2937',
+                                marginBottom: '0.25rem'
+                              }}>
+                                {getEntryText(entry).substring(0, 80)}...
+                              </p>
+                              <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                {format(new Date(entry.date || entry.created_at), 'dd/MM/yyyy', { locale: fr })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
