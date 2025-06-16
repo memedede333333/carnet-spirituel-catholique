@@ -437,6 +437,31 @@ export default function RelecturePage() {
     )
   }
 
+  // Obtenir tous les liens d'une entrée
+  const getLinksForEntry = (entryId: string) => {
+    return spiritualLinks.filter(link => 
+      link.element_source_id === entryId || 
+      link.element_cible_id === entryId
+    );
+  }
+
+  // Vérifier si deux entrées sont directement liées
+  const areDirectlyLinked = (entry1Id: string, entry2Id: string) => {
+    return spiritualLinks.some(link => 
+      (link.element_source_id === entry1Id && link.element_cible_id === entry2Id) ||
+      (link.element_source_id === entry2Id && link.element_cible_id === entry1Id)
+    );
+  }
+
+  // Obtenir le type de lien entre deux entrées
+  const getLinkTypeBetween = (entry1Id: string, entry2Id: string) => {
+    const link = spiritualLinks.find(l => 
+      (l.element_source_id === entry1Id && l.element_cible_id === entry2Id) ||
+      (l.element_source_id === entry2Id && l.element_cible_id === entry1Id)
+    );
+    return link?.type_lien || null;
+  }
+
 
 
 
