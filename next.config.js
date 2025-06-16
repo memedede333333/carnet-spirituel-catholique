@@ -1,12 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    // Désactiver temporairement pour déployer
-    ignoreBuildErrors: true,
-  },
+  output: 'standalone',
+  experimental: {
+    outputFileTracingExcludes: {
+      '*': ['.next/server/app/(app)/**']
+    }
+  }
 }
 
 module.exports = nextConfig
