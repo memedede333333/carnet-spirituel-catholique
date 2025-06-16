@@ -424,8 +424,35 @@ export default function RelecturePage() {
   }
 
   const getEntryText = (entry: any) => {
+    // Version améliorée avec plus de contexte
+    if (entry.type === 'ecriture' && entry.reference) {
+      const preview = entry.texte_complet ? ': ' + entry.texte_complet.substring(0, 60) + '...' : '';
+      return `📖 ${entry.reference}${preview}`;
+    }
+    if (entry.type === 'priere' && entry.personne_prenom) {
+      const sujet = entry.sujet ? ' - ' + entry.sujet : '';
+      return `🙏 Prière pour ${entry.personne_prenom}${sujet}`;
+    }
+    if (entry.type === 'parole') {
+      let dest = 'Pour un inconnu';
+      if (entry.destinataire === 'moi') dest = 'Pour moi';
+      else if (entry.destinataire === 'personne' && entry.personne_destinataire) {
+        dest = `Pour ${entry.personne_destinataire}`;
+      }
+      const preview = entry.texte ? ': ' + entry.texte.substring(0, 50) + '...' : '';
+      return `🕊️ Parole ${dest}${preview}`;
+    }
+    if (entry.type === 'rencontre' && entry.personne_prenom) {
+      const lieu = entry.lieu ? ' à ' + entry.lieu : '';
+      return `🤝 Rencontre avec ${entry.personne_prenom}${lieu}`;
+    }
+    if (entry.type === 'grace' && entry.texte) {
+      return `✨ Grâce: ${entry.texte.substring(0, 80)}...`;
+    }
+    
+    // Par défaut
     return entry.texte || entry.description || entry.sujet || entry.reference || 
-           (entry.type === 'priere' ? `Prière pour ${entry.personne_prenom}` : 'Entrée')
+           (entry.type === 'priere' ? `Prière pour ${entry.personne_prenom}` : 'Entrée');
   }
 
   const areEntriesLinked = (entry1: any, entry2: any) => {
@@ -2484,6 +2511,8 @@ export default function RelecturePage() {
                 <div style={{
                   maxHeight: '400px',
                   overflowY: 'auto',
+                  overflowX: 'hidden',
+                  paddingRight: '0.5rem',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.5rem'
@@ -2499,22 +2528,26 @@ export default function RelecturePage() {
                           key={entry.id}
                           onClick={() => setSelectedSource(entry)}
                           style={{
-                            padding: '0.75rem',
+                            padding: '0.875rem',
                             borderRadius: '0.5rem',
                             border: isSelected ? `2px solid ${config.color}` : '1px solid #e5e7eb',
                             background: isSelected ? config.color + '10' : 'white',
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            position: 'relative',
+                            zIndex: 1
                           }}
                           onMouseEnter={(e) => {
                             if (!isSelected) {
                               e.currentTarget.style.borderColor = config.color;
-                              e.currentTarget.style.transform = 'translateX(4px)';
+                              e.currentTarget.style.zIndex = '10';
+                              e.currentTarget.style.transform = 'translateX(2px)';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isSelected) {
                               e.currentTarget.style.borderColor = '#e5e7eb';
+                              e.currentTarget.style.zIndex = '1';
                               e.currentTarget.style.transform = 'translateX(0)';
                             }
                           }}
@@ -2674,7 +2707,9 @@ export default function RelecturePage() {
                       fontSize: '0.875rem',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            position: 'relative',
+                            zIndex: 1
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
@@ -2729,6 +2764,8 @@ export default function RelecturePage() {
                 <div style={{
                   maxHeight: '400px',
                   overflowY: 'auto',
+                  overflowX: 'hidden',
+                  paddingRight: '0.5rem',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.5rem'
@@ -2744,22 +2781,26 @@ export default function RelecturePage() {
                           key={entry.id}
                           onClick={() => setSelectedDest(entry)}
                           style={{
-                            padding: '0.75rem',
+                            padding: '0.875rem',
                             borderRadius: '0.5rem',
                             border: isSelected ? `2px solid ${config.color}` : '1px solid #e5e7eb',
                             background: isSelected ? config.color + '10' : 'white',
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            position: 'relative',
+                            zIndex: 1
                           }}
                           onMouseEnter={(e) => {
                             if (!isSelected) {
                               e.currentTarget.style.borderColor = config.color;
-                              e.currentTarget.style.transform = 'translateX(-4px)';
+                              e.currentTarget.style.zIndex = '10';
+                              e.currentTarget.style.transform = 'translateX(-2px)';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isSelected) {
                               e.currentTarget.style.borderColor = '#e5e7eb';
+                              e.currentTarget.style.zIndex = '1';
                               e.currentTarget.style.transform = 'translateX(0)';
                             }
                           }}
@@ -2903,7 +2944,9 @@ export default function RelecturePage() {
                           borderRadius: '0.5rem',
                           padding: '1rem',
                           cursor: 'pointer',
-                          transition: 'all 0.2s',
+                            transition: 'all 0.2s',
+                            position: 'relative',
+                            zIndex: 1,
                           background: link.strength === 'fort' ? config.color + '10' : 'white'
                         }}
                         onClick={() => {
