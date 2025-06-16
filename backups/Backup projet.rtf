@@ -1,0 +1,72 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\csgray\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww15600\viewh9480\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Sauvegarde bcp local\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f1\fs22 \cf2 \CocoaLigature0 \
+\
+cp "app/(app)/relecture/page.tsx" "app/(app)/relecture/page.tsx.backup-$(date +%Y%m%d-%H%M%S)"\
+\
+Check bop local\
+ls -la "app/(app)/relecture/" | grep backup\
+\
+\
+Backupp GitHub\
+\
+Pour la totalit\'e9\
+\
+git add .\
+git commit -m "Backup avant am\'e9lioration vues ensemble et gestion - Module Relecture fonctionnel"\
+git push origin main\
+\
+\
+Pour uniquement relecture : \
+\
+git add "app/(app)/relecture/page.tsx"\
+git commit -m "Ajout module Tisser les liens - Interface 3 colonnes fonctionnelle - modif texte cartes"\
+git push\
+\
+Pour check :\
+\
+\
+git log --oneline -1\
+\
+\
+\
+\
+\
+Pour modifier nom sauvegarde git\
+\
+git add .\
+git commit -m "Backup Ajout module Tisser les liens - Interface 3 colonnes fonctionnelle"\
+git push origin main\
+\
+\
+\
+Double backup vite fait : \
+\
+\
+cp "app/(app)/relecture/page.tsx" "app/(app)/relecture/page.tsx.backup-$(date +%Y%m%d-%H%M%S)"\
+\
+git add .\
+git commit -m "Backup avant am\'e9lioration phase par phase -toujours sauvegarde retour - Module Relecture fonctionnel"\
+git push origin main\
+\
+\
+\
+\
+\
+\
+\
+Si quelque chose ne va pas, vous pourrez facilement revenir en arri\'e8re avec :\
+\
+cp "app/(app)/relecture/page.tsx.backup-20250611-151644" "app/(app)/relecture/page.tsx"\
+\
+ou \
+\
+git checkout -- "app/(app)/relecture/page.tsx"}
