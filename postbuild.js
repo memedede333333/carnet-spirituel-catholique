@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-// Créer le fichier manquant
+// Créer les dossiers que Vercel cherche
 const dirs = [
   '.next/server/app/(app)',
+  '.next/server/app/(auth)',
   '.next/server/app'
 ];
 
@@ -13,6 +14,7 @@ dirs.forEach(dir => {
   }
 });
 
+// Créer le fichier problématique
 const files = [
   '.next/server/app/(app)/page_client-reference-manifest.js',
   '.next/server/app/(app)/page.js'
