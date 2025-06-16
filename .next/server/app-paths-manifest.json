@@ -1,4 +1,0 @@
-{
-  "/(app)/graces/[id]/page": "app/(app)/graces/[id]/page.js",
-  "/(app)/relecture/page": "app/(app)/relecture/page.js"
-}

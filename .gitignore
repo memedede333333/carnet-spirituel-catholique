@@ -21,3 +21,5 @@ CHEMIN_DU_FICHIER
 # macOS
 .DS_Store
 node_modules/
+.next/
+*.backup*
