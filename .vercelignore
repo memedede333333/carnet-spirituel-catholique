@@ -1,0 +1,4 @@
+backups/
+*.backup*
+.env.local
+.DS_Store
