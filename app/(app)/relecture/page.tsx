@@ -2794,7 +2794,7 @@ export default function RelecturePage() {
                             if (!isSelected) {
                               e.currentTarget.style.borderColor = config.color;
                               e.currentTarget.style.zIndex = '10';
-                              e.currentTarget.style.transform = 'translateX(-2px)';
+                              e.currentTarget.style.transform = 'translateX(2px)';
                             }
                           }}
                           onMouseLeave={(e) => {
