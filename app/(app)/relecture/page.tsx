@@ -1680,7 +1680,7 @@ export default function RelecturePage() {
         {viewMode === 'ensemble' && (
           <div>
             <div style={{
-              background: 'linear-gradient(135deg, #E6EDFF, #F0F4FF)',
+              background: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)',
               borderRadius: '1rem',
               padding: '2rem',
               marginBottom: '2rem',
@@ -2097,7 +2097,7 @@ export default function RelecturePage() {
           <div>
             {/* En-tête avec statistiques */}
             <div style={{
-              background: 'linear-gradient(135deg, #E6EDFF, #F0F4FF)',
+              background: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)',
               borderRadius: '1rem',
               padding: '2rem',
               marginBottom: '2rem',
@@ -2463,7 +2463,7 @@ export default function RelecturePage() {
         {viewMode === 'atelier' && (
           <div>
             <div style={{
-              background: 'linear-gradient(135deg, #E6EDFF, #F0F4FF)',
+              background: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)',
               borderRadius: '1rem',
               padding: '2rem',
               marginBottom: '2rem',
@@ -2592,7 +2592,7 @@ export default function RelecturePage() {
 
               {/* Zone centrale */}
               <div style={{
-                background: 'linear-gradient(to bottom, #f9fafb, white)',
+                background: 'linear-gradient(to bottom, #F0F9FF, white)',
                 borderRadius: '1rem',
                 padding: '1.5rem',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
@@ -2869,9 +2869,9 @@ export default function RelecturePage() {
             <div style={{
               marginTop: '2rem',
               padding: '1.5rem',
-              background: 'linear-gradient(135deg, #F0F4FF 0%, #E6EDFF 100%)',
+              background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
               borderRadius: '1rem',
-              border: '1px solid #D6E5F5'
+              border: '1px solid #BAE6FD'
             }}>
               <h3 style={{
                 fontSize: '1.1rem',
