@@ -9,6 +9,9 @@ import { format, parseISO, isWithinInterval, subMonths, differenceInDays } from 
 import { fr } from 'date-fns/locale'
 
 import ConstellationView from '@/app/components/ConstellationView'
+import LinkBadge from '@/app/components/LinkBadge'
+import LinksList from '@/app/components/LinksList'
+import { areEntriesLinked as checkEntriesLinked, getLinkTypeBetween } from '@/app/lib/spiritual-links-helpers'
 
 export default function RelecturePage() {
   const [loading, setLoading] = useState(true)
@@ -38,6 +41,7 @@ export default function RelecturePage() {
   const [selectedSource, setSelectedSource] = useState<any>(null)
   const [selectedDest, setSelectedDest] = useState<any>(null)
   const [selectedLinkType, setSelectedLinkType] = useState('exauce')
+  const [linkNotification, setLinkNotification] = useState<{ message: string; type: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -395,6 +399,17 @@ export default function RelecturePage() {
 
   const saveSpiritualLink = async (fromEntry: Entry, toEntry: Entry, linkType: string, label: string, notes?: string) => {
     try {
+      // Vérifier si un lien existe déjà
+      if (checkEntriesLinked(fromEntry.id, toEntry.id, spiritualLinks)) {
+        const existingType = getLinkTypeBetween(fromEntry.id, toEntry.id, spiritualLinks);
+        setLinkNotification({ 
+          message: `Un lien "${existingType}" existe déjà entre ces éléments`, 
+          type: 'warning' 
+        });
+        setTimeout(() => setLinkNotification(null), 5000);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
@@ -412,9 +427,11 @@ export default function RelecturePage() {
 
       if (error) {
         console.error('Erreur lors de la sauvegarde du lien:', error)
-        alert('Erreur lors de la sauvegarde du lien')
+        setLinkNotification({ message: 'Erreur lors de la sauvegarde du lien', type: 'error' });
+        setTimeout(() => setLinkNotification(null), 5000)
       } else {
-        alert('Lien spirituel créé avec succès !')
+        setLinkNotification({ message: 'Lien spirituel créé avec succès !', type: 'success' });
+        setTimeout(() => setLinkNotification(null), 3000)
         setShowLinkModal(false)
         loadAllEntries()
       }
@@ -2691,6 +2708,17 @@ export default function RelecturePage() {
                 {selectedSource && selectedDest && (
                   <button
                     onClick={() => {
+                      
+                      // Vérifier si un lien existe déjà
+                      if (checkEntriesLinked(selectedSource.id, selectedDest.id, spiritualLinks)) {
+                        const existingType = getLinkTypeBetween(selectedSource.id, selectedDest.id, spiritualLinks);
+                        setLinkNotification({ 
+                          message: `Un lien "${existingType}" existe déjà entre ces éléments`, 
+                          type: 'warning' 
+                        });
+                        setTimeout(() => setLinkNotification(null), 5000);
+                        return;
+                      }
                       saveSpiritualLink(selectedSource, selectedDest, selectedLinkType, 
                         `${getTypeConfig(selectedSource.type).label} ${selectedLinkType} ${getTypeConfig(selectedDest.type).label}`
                       );
@@ -2779,7 +2807,18 @@ export default function RelecturePage() {
                       return (
                         <div
                           key={entry.id}
-                          onClick={() => setSelectedDest(entry)}
+                          onClick={() => {
+                            setSelectedDest(entry);
+                            // Vérifier si un lien existe déjà
+                            if (selectedSource && checkEntriesLinked(selectedSource.id, entry.id, spiritualLinks)) {
+                              const existingType = getLinkTypeBetween(selectedSource.id, entry.id, spiritualLinks);
+                              setLinkNotification({ 
+                                message: `Un lien "${existingType}" existe déjà entre ces éléments`, 
+                                type: 'warning' 
+                              });
+                              setTimeout(() => setLinkNotification(null), 5000);
+                            }
+                          }}
                           style={{
                             padding: '0.875rem',
                             borderRadius: '0.5rem',
@@ -2830,6 +2869,33 @@ export default function RelecturePage() {
         )}
 
         {/* Modal de liens spirituels amélioré */}
+        {/* Notification globale flottante */}
+        {linkNotification && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: linkNotification.type === 'success' ? '#10b981' : 
+                       linkNotification.type === 'error' ? '#ef4444' : '#f59e0b',
+            color: 'white',
+            padding: '1rem 2rem',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            zIndex: 1000,
+            animation: 'slideDown 0.3s ease-out',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <span style={{ fontSize: '1.25rem' }}>
+              {linkNotification.type === 'success' ? '✅' : 
+               linkNotification.type === 'error' ? '❌' : '⚠️'}
+            </span>
+            {linkNotification.message}
+          </div>
+        )}
+
         {showLinkModal && selectedEntryForLink && (
           <div style={{
             position: 'fixed',
@@ -3036,7 +3102,17 @@ export default function RelecturePage() {
       {/* Animation float pour le jardin */}
       
       <style jsx global>{`
-        @keyframes glow {
+
+        @keyframes slideDown {
+          0% { opacity: 0; transform: translateX(-50%) translateY(-100%); }
+          100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+          0% { opacity: 0; transform: translateY(-10px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+                @keyframes glow {
           0% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
           50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 30px rgba(168, 85, 247, 0.6); }
           100% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
