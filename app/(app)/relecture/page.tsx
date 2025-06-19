@@ -2865,6 +2865,125 @@ export default function RelecturePage() {
                 </div>
               </div>
             </div>
+            {/* Zone des liens récents */}
+            <div style={{
+              marginTop: '2rem',
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #F0F4FF 0%, #E6EDFF 100%)',
+              borderRadius: '1rem',
+              border: '1px solid #D6E5F5'
+            }}>
+              <h3 style={{
+                fontSize: '1.1rem',
+                fontWeight: '600',
+                color: '#1f2345',
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                📌 Liens récents
+                <span style={{
+                  fontSize: '0.9rem',
+                  color: '#6b7280',
+                  fontWeight: 'normal'
+                }}>
+                  (5 derniers créés)
+                </span>
+              </h3>
+              
+              {spiritualLinks.length > 0 ? (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem'
+                }}>
+                  {spiritualLinks.slice(-5).reverse().map((link, index) => {
+                    const sourceEntry = entries.find(e => e.id === link.element_source_id);
+                    const targetEntry = entries.find(e => e.id === link.element_cible_id);
+                    
+                    if (!sourceEntry || !targetEntry) return null;
+                    
+                    return (
+                      <div
+                        key={link.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                          padding: '0.75rem',
+                          background: 'white',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.9rem',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>
+                          {sourceEntry.type === 'grace' && '✨'}
+                          {sourceEntry.type === 'priere' && '🙏'}
+                          {sourceEntry.type === 'ecriture' && '📖'}
+                          {sourceEntry.type === 'parole' && '🕊️'}
+                          {sourceEntry.type === 'rencontre' && '🤝'}
+                        </span>
+                        
+                        <span style={{ 
+                          flex: 1,
+                          color: '#4b5563',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {getEntryText(sourceEntry).substring(0, 50)}...
+                        </span>
+                        
+                        <span style={{
+                          background: '#7BA7E1',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '1rem',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {link.type_lien === 'exauce' && '🙏 exauce'}
+                          {link.type_lien === 'accomplit' && '✓ accomplit'}
+                          {link.type_lien === 'decoule' && '→ découle'}
+                          {link.type_lien === 'eclaire' && '💡 éclaire'}
+                          {link.type_lien === 'echo' && '🔄 écho'}
+                        </span>
+                        
+                        <span style={{ fontSize: '1.2rem' }}>
+                          {targetEntry.type === 'grace' && '✨'}
+                          {targetEntry.type === 'priere' && '🙏'}
+                          {targetEntry.type === 'ecriture' && '📖'}
+                          {targetEntry.type === 'parole' && '🕊️'}
+                          {targetEntry.type === 'rencontre' && '🤝'}
+                        </span>
+                        
+                        <span style={{ 
+                          flex: 1,
+                          color: '#4b5563',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {getEntryText(targetEntry).substring(0, 50)}...
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p style={{
+                  textAlign: 'center',
+                  color: '#9ca3af',
+                  fontSize: '0.875rem',
+                  padding: '2rem'
+                }}>
+                  Aucun lien créé pour le moment. Commencez à tisser les connexions spirituelles !
+                </p>
+              )}
+            </div>
           </div>
         )}
 
