@@ -29,6 +29,7 @@ export default function RelecturePage() {
   const [linkMode, setLinkMode] = useState(false)
   const [firstSelectedEntry, setFirstSelectedEntry] = useState<any>(null)
   const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
+  const [updatingLink, setUpdatingLink] = useState<string | null>(null)
   const [hoveredEntry, setHoveredEntry] = useState<any>(null)
   const [gestionFilters, setGestionFilters] = useState({
     typeLien: 'all',
@@ -437,6 +438,41 @@ export default function RelecturePage() {
       }
     } catch (error) {
       console.error('Erreur:', error)
+    }
+  }
+  const updateLinkType = async (linkId: string, newType: string) => {
+    try {
+      setUpdatingLink(linkId)
+      
+      const { error } = await supabase
+        .from('liens_spirituels')
+        .update({ type_lien: newType })
+        .eq('id', linkId)
+        
+      if (error) throw error
+      
+      setSpiritualLinks(prev => 
+        prev.map(link => 
+          link.id === linkId ? { ...link, type_lien: newType } : link
+        )
+      )
+      
+      setLinkNotification({ 
+        message: 'Type de lien modifié avec succès', 
+        type: 'success' 
+      })
+      
+      setTimeout(() => {
+        setUpdatingLink(null)
+      }, 1000)
+      
+    } catch (error: any) {
+      console.error('Erreur:', error)
+      setLinkNotification({ 
+        message: 'Erreur lors de la modification', 
+        type: 'error' 
+      })
+      setUpdatingLink(null)
     }
   }
 
@@ -2307,22 +2343,35 @@ export default function RelecturePage() {
                             </p>
                           </div>
 
-                          {/* Type de lien */}
-                          <div style={{
-                            padding: '0.5rem 1rem',
-                            background: '#f3f4f6',
-                            borderRadius: '2rem',
-                            fontSize: '0.75rem',
-                            fontWeight: '500',
-                            color: '#4b5563',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {link.type_lien === 'exauce' && '🙏 exauce'}
-                            {link.type_lien === 'accomplit' && '✓ accomplit'}
-                            {link.type_lien === 'decoule' && '→ découle'}
-                            {link.type_lien === 'eclaire' && '💡 éclaire'}
-                            {link.type_lien === 'echo' && '🔄 écho'}
-                          </div>
+                          {/* Type de lien - Modifiable */}
+<select
+  value={link.type_lien}
+  onChange={(e) => updateLinkType(link.id, e.target.value)}
+  disabled={updatingLink === link.id}
+  style={{
+    padding: '0.5rem 1rem',
+    backgroundColor: updatingLink === link.id ? '#D1FAE5' : '#f3f4f6',
+    border: '1px solid #e5e7eb',
+    borderRadius: '2rem',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    color: '#4b5563',
+    cursor: updatingLink === link.id ? 'wait' : 'pointer',
+    transition: 'all 0.2s',
+    minWidth: '140px',
+    textAlign: 'center',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none'
+  }}
+  title={updatingLink === link.id ? 'Modification en cours...' : 'Cliquer pour modifier le type de lien'}
+>
+  <option value="exauce">🙏 exauce</option>
+  <option value="accomplit">✓ accomplit</option>
+  <option value="decoule">→ découle</option>
+  <option value="eclaire">💡 éclaire</option>
+  <option value="echo">🔄 écho</option>
+</select>
 
                           {/* Cible */}
                           <div style={{ flex: 1 }}>
