@@ -2344,34 +2344,122 @@ export default function RelecturePage() {
                           </div>
 
                           {/* Type de lien - Modifiable */}
-<select
-  value={link.type_lien}
-  onChange={(e) => updateLinkType(link.id, e.target.value)}
-  disabled={updatingLink === link.id}
-  style={{
-    padding: '0.5rem 1rem',
-    backgroundColor: updatingLink === link.id ? '#D1FAE5' : '#f3f4f6',
-    border: '1px solid #e5e7eb',
-    borderRadius: '2rem',
-    fontSize: '0.75rem',
-    fontWeight: '500',
-    color: '#4b5563',
-    cursor: updatingLink === link.id ? 'wait' : 'pointer',
-    transition: 'all 0.2s',
-    minWidth: '140px',
-    textAlign: 'center',
-    appearance: 'none',
-    WebkitAppearance: 'none',
-    MozAppearance: 'none'
-  }}
-  title={updatingLink === link.id ? 'Modification en cours...' : 'Cliquer pour modifier le type de lien'}
->
-  <option value="exauce">🙏 exauce</option>
-  <option value="accomplit">✓ accomplit</option>
-  <option value="decoule">→ découle</option>
-  <option value="eclaire">💡 éclaire</option>
-  <option value="echo">🔄 écho</option>
-</select>
+                          <div style={{
+                            position: 'relative',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            background: updatingLink === link.id 
+                              ? 'linear-gradient(135deg, #D1FAE5, #A7F3D0)'
+                              : '#f3f4f6',
+                            borderRadius: '2rem',
+                            padding: '0.25rem 0.5rem 0.25rem 1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            border: '2px solid transparent',
+                            boxShadow: updatingLink === link.id 
+                              ? '0 2px 8px rgba(16, 185, 129, 0.2)'
+                              : 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (updatingLink !== link.id) {
+                              e.currentTarget.style.background = 'linear-gradient(135deg, #E0E7FF, #D6E5F5)';
+                              e.currentTarget.style.borderColor = '#7BA7E1';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 167, 225, 0.15)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (updatingLink !== link.id) {
+                              e.currentTarget.style.background = '#f3f4f6';
+                              e.currentTarget.style.borderColor = 'transparent';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }
+                          }}
+                          title="Cliquer pour modifier le type de lien"
+                        >
+                          <span style={{
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            color: updatingLink === link.id ? '#065f46' : '#4b5563',
+                            marginRight: '0.5rem',
+                            transition: 'color 0.2s'
+                          }}>
+                            {link.type_lien === 'exauce' && '🙏 exauce'}
+                            {link.type_lien === 'accomplit' && '✓ accomplit'}
+                            {link.type_lien === 'decoule' && '→ découle'}
+                            {link.type_lien === 'eclaire' && '💡 éclaire'}
+                            {link.type_lien === 'echo' && '🔄 écho'}
+                          </span>
+                          
+                          <select
+                            value={link.type_lien}
+                            onChange={(e) => updateLinkType(link.id, e.target.value)}
+                            disabled={updatingLink === link.id}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              opacity: 0,
+                              cursor: updatingLink === link.id ? 'wait' : 'pointer'
+                            }}
+                          >
+                            <option value="exauce">🙏 exauce</option>
+                            <option value="accomplit">✓ accomplit</option>
+                            <option value="decoule">→ découle</option>
+                            <option value="eclaire">💡 éclaire</option>
+                            <option value="echo">🔄 écho</option>
+                          </select>
+                          
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '24px',
+                            height: '24px',
+                            background: updatingLink === link.id 
+                              ? 'rgba(16, 185, 129, 0.2)' 
+                              : 'rgba(107, 114, 128, 0.1)',
+                            borderRadius: '50%',
+                            marginLeft: '0.25rem',
+                            transition: 'all 0.2s'
+                          }}>
+                            {updatingLink === link.id ? (
+                              // Icône de chargement
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                                style={{
+                                  animation: 'spin 1s linear infinite'
+                                }}
+                              >
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path d="M9 12l2 2 4-4" style={{ opacity: 0.3 }} />
+                              </svg>
+                            ) : (
+                              // Icône de modification
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#6b7280"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
 
                           {/* Cible */}
                           <div style={{ flex: 1 }}>
@@ -3298,6 +3386,12 @@ export default function RelecturePage() {
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-20px); }
+        }
+      
+        
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
