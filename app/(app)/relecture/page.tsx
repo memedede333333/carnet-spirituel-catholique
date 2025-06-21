@@ -30,6 +30,7 @@ export default function RelecturePage() {
   const [firstSelectedEntry, setFirstSelectedEntry] = useState<any>(null)
   const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
   const [updatingLink, setUpdatingLink] = useState<string | null>(null)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [hoveredEntry, setHoveredEntry] = useState<any>(null)
   const [gestionFilters, setGestionFilters] = useState({
     typeLien: 'all',
@@ -48,6 +49,23 @@ export default function RelecturePage() {
   useEffect(() => {
     loadAllEntries()
   }, [])
+  useEffect(() => {
+  loadAllEntries()
+}, [])
+
+// Fermer le dropdown au clic externe
+useEffect(() => {
+  const handleClickOutside = () => {
+    setOpenDropdown(null);
+  };
+  
+  if (openDropdown) {
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }
+}, [openDropdown])
 
   useEffect(() => {
     filterEntries()
@@ -2294,6 +2312,10 @@ export default function RelecturePage() {
                             gap: '1rem',
                             transition: 'all 0.2s',
                             cursor: 'pointer'
+                            ,
+overflow: 'visible',
+zIndex: link.id === openDropdown ? 100 : 1,
+position: 'relative'
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.borderColor = '#7BA7E1';
@@ -2344,7 +2366,11 @@ export default function RelecturePage() {
                           </div>
 
                           {/* Type de lien - Modifiable */}
-                          <div style={{
+                          <div onClick={() => {
+  if (updatingLink !== link.id) {
+    setOpenDropdown(openDropdown === link.id ? null : link.id);
+  }
+}} data-link-id={link.id} style={{
                             position: 'relative',
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -2355,11 +2381,13 @@ export default function RelecturePage() {
                             padding: '0.25rem 0.5rem 0.25rem 1rem',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
-                            border: '2px solid transparent',
+                           border: '2px solid transparent',
+zIndex: openDropdown === link.id ? 1001 : 1,
                             boxShadow: updatingLink === link.id 
                               ? '0 2px 8px rgba(16, 185, 129, 0.2)'
                               : 'none'
-                          }}
+                          ,
+overflow: 'visible' }}
                           onMouseEnter={(e) => {
                             if (updatingLink !== link.id) {
                               e.currentTarget.style.background = 'linear-gradient(135deg, #E0E7FF, #D6E5F5)';
@@ -2403,7 +2431,9 @@ export default function RelecturePage() {
                               width: '100%',
                               height: '100%',
                               opacity: 0,
-                              cursor: updatingLink === link.id ? 'wait' : 'pointer'
+                              cursor: updatingLink === link.id ? 'wait' : 'pointer',
+zIndex: -1,
+pointerEvents: 'none'
                             }}
                           >
                             <option value="exauce">🙏 exauce</option>
@@ -2443,22 +2473,76 @@ export default function RelecturePage() {
                                 <path d="M9 12l2 2 4-4" style={{ opacity: 0.3 }} />
                               </svg>
                             ) : (
-                              // Icône de modification
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#6b7280"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
+                             
+                              // Icône flèche
+<svg
+  width="12"
+  height="12"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="#6b7280"
+  strokeWidth="2"
+  style={{
+    transform: openDropdown === link.id ? 'rotate(180deg)' : 'rotate(0deg)',
+    transition: 'transform 0.2s'
+  }}
+>
+  <path d="M6 9l6 6 6-6" />
+</svg>
                             )}
                           </div>
+                          {/* Dropdown personnalisé */}
+{openDropdown === link.id && (
+  <div style={{
+  position: 'absolute',
+top: 'calc(100% + 0.5rem)',
+left: '50%',
+transform: 'translateX(-50%)',
+    background: 'white',
+    borderRadius: '0.75rem',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #e5e7eb',
+    minWidth: '160px',
+    zIndex: 2000,
+    overflow: 'hidden'
+  }}>
+    {['exauce', 'accomplit', 'decoule', 'eclaire', 'echo'].map((type) => (
+      <div
+        key={type}
+        onClick={(e) => {
+          e.stopPropagation();
+          updateLinkType(link.id, type);
+          setOpenDropdown(null);
+        }}
+        style={{
+          padding: '0.75rem 1rem',
+          fontSize: '0.75rem',
+          fontWeight: '500',
+          color: link.type_lien === type ? '#7BA7E1' : '#4b5563',
+          background: link.type_lien === type ? '#F0F4FF' : 'transparent',
+          cursor: 'pointer',
+          transition: 'all 0.15s'
+        }}
+        onMouseEnter={(e) => {
+          if (link.type_lien !== type) {
+            e.currentTarget.style.background = '#f9fafb';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (link.type_lien !== type) {
+            e.currentTarget.style.background = 'transparent';
+          }
+        }}
+      >
+        {type === 'exauce' && '🙏 exauce'}
+        {type === 'accomplit' && '✓ accomplit'}
+        {type === 'decoule' && '→ découle'}
+        {type === 'eclaire' && '💡 éclaire'}
+        {type === 'echo' && '🔄 écho'}
+      </div>
+    ))}
+  </div>
+)}
                         </div>
 
                           {/* Cible */}
