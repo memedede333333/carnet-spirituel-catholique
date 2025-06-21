@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowLeft, Sparkles, Heart, BookOpen, Users, MessageSquare, Filter, Calendar, ChevronRight, Eye, Lightbulb, Zap, Link as LinkIcon, Compass, Cross, Church, Flower, Star, Check, HandHeart, ArrowRight, Trash2 } from 'lucide-react'
 import { format, parseISO, isWithinInterval, subMonths, differenceInDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import LinkBadge from '@/app/components/LinkBadge'
 
 import ConstellationView from '@/app/components/ConstellationView'
 import LinkBadge from '@/app/components/LinkBadge'
