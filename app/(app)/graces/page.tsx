@@ -7,6 +7,7 @@ import { Plus, Calendar, MapPin, Sparkles, Tag, Eye, Search, Filter, ArrowLeft }
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { getLinksCountForEntry, getLinksForEntry } from '@/app/lib/spiritual-links-helpers'
+import LinkBadge from '@/app/components/LinkBadge'
 
 interface Grace {
   id: string
@@ -67,7 +68,7 @@ export default function GracesPage() {
       // Extraire tous les tags uniques
       const tags = new Set<string>()
       data?.forEach(grace => {
-        grace.tags?.forEach(tag => tags.add(tag))
+        grace.tags?.forEach((tag: string) => tags.add(tag))
       })
       setAllTags(Array.from(tags))
 
@@ -149,7 +150,7 @@ export default function GracesPage() {
   const filteredGraces = graces.filter(grace => {
     const matchesSearch = grace.texte.toLowerCase().includes(filter.toLowerCase()) ||
       grace.lieu?.toLowerCase().includes(filter.toLowerCase()) ||
-      grace.tags?.some(tag => tag.toLowerCase().includes(filter.toLowerCase()))
+      grace.tags?.some((tag: string) => tag.toLowerCase().includes(filter.toLowerCase()))
     
     const matchesTag = !selectedTag || grace.tags?.includes(selectedTag)
     
@@ -504,57 +505,33 @@ export default function GracesPage() {
                     </div>
                   </Link>
                   
-                  {/* Badge avec popup */}
+                  {/* Badge */}
                   {linksCount > 0 && (
-                    <div style={{ position: 'absolute', bottom: '0.75rem', right: '0.75rem' }} data-links-popup>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setShowLinksPopup(showLinksPopup === grace.id ? null : grace.id)
-                        }}
-                        style={{
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '1rem',
-                          border: '2px solid #FCD34D',
-                          background: '#FEF3C7',
-                          color: '#78350F',
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#FDE68A'
-                          e.currentTarget.style.transform = 'scale(1.05)'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#FEF3C7'
-                          e.currentTarget.style.transform = 'scale(1)'
-                        }}
-                      >
-                        🔗 {linksCount}
-                      </button>
-                      
-                      {/* Popup */}
-                      {showLinksPopup === grace.id && (
-                        <div style={{
-                          position: 'absolute',
-                          bottom: '100%',
-                          right: '0',
-                          marginBottom: '0.5rem',
-                          background: 'white',
-                          border: '2px solid #FCD34D',
-                          borderRadius: '0.75rem',
-                          padding: '0.75rem',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                          minWidth: '250px',
-                          maxWidth: '350px',
-                          zIndex: 1000
-                        }}>
+                    <LinkBadge
+                      count={linksCount}
+                      color="#F59E0B"
+                      size="small"
+                      onClick={() => {
+                        setShowLinksPopup(showLinksPopup === grace.id ? null : grace.id)
+                      }}
+                    />
+                  )}
+                  
+                  {/* Popup */}
+                  {showLinksPopup === grace.id && linksCount > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '30px',
+                      right: '-8px',
+                      background: 'white',
+                      border: '2px solid #FCD34D',
+                      borderRadius: '0.75rem',
+                      padding: '0.75rem',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      minWidth: '250px',
+                      maxWidth: '350px',
+                      zIndex: 1000
+                    }} data-links-popup>
                           {getLinksForEntry(grace.id, 'grace', spiritualLinks).map(link => {
                             const isSource = link.element_source_id === grace.id
                             const targetId = isSource ? link.element_cible_id : link.element_source_id
@@ -609,8 +586,6 @@ export default function GracesPage() {
                               </div>
                             )
                           })}
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
