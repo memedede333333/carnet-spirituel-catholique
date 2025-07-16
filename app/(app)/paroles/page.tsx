@@ -480,7 +480,7 @@ export default function ParolesPage() {
                       <div style={{
                         position: 'absolute',
                         top: '-8px',
-                        right: '1rem',
+                        left: '30px',
                         background: '#10B981',
                         color: 'white',
                         padding: '0.25rem 0.75rem',
