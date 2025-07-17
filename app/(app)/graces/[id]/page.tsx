@@ -182,14 +182,17 @@ export default function GraceDetailPage({ params }: { params: Promise<{ id: stri
                 gap: '0.75rem'
               }}>
                 <div style={{
-                  background: '#FCD34D',
-                  borderRadius: '0.75rem',
-                  padding: '0.75rem',
+                  background: 'white',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  fontSize: '2rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}>
-                  <Sparkles size={28} style={{ color: '#78350F' }} />
+                  ✨
                 </div>
                 <div>
                   <h1 style={{
