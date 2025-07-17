@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { Plus, Calendar, Book, Heart, Search, Filter, ArrowLeft } from 'lucide-react'
+import { getLinksCountForEntry, getLinksForEntry } from '@/app/lib/spiritual-links-helpers'
+import LinkBadge from '@/app/components/LinkBadge'
 
 interface Ecriture {
   id: string
@@ -25,6 +27,9 @@ export default function EcrituresPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
   const [selectedContext, setSelectedContext] = useState<string | null>(null)
+  const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
+  const [showLinksPopup, setShowLinksPopup] = useState<string | null>(null)
+  const [allEntries, setAllEntries] = useState<any[]>([])
 
   const contextOptions = [
     { value: 'messe', label: 'Messe' },
@@ -37,6 +42,18 @@ export default function EcrituresPage() {
   useEffect(() => {
     fetchEcritures()
   }, [])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement
+      if (showLinksPopup && !target.closest('[data-links-popup]')) {
+        setShowLinksPopup(null)
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showLinksPopup])
 
   const fetchEcritures = async () => {
     try {
@@ -54,6 +71,41 @@ export default function EcrituresPage() {
 
       if (error) throw error
       setEcritures(data || [])
+      
+      // Charger les liens spirituels
+      const { data: linksData } = await supabase
+        .from('liens_spirituels')
+        .select('*')
+        .eq('user_id', user.id)
+      
+      setSpiritualLinks(linksData || [])
+      
+      // Charger toutes les entrées pour les popups
+      const allEntriesData: any[] = []
+      
+      const tables = [
+        { name: 'graces', type: 'grace' },
+        { name: 'prieres', type: 'priere' },
+        { name: 'paroles_connaissance', type: 'parole' },
+        { name: 'rencontres_missionnaires', type: 'rencontre' }
+      ]
+      
+      for (const table of tables) {
+        const { data: tableData } = await supabase
+          .from(table.name)
+          .select('*')
+          .eq('user_id', user.id)
+        
+        if (tableData) {
+          allEntriesData.push(...tableData.map(item => ({ ...item, type: table.type })))
+        }
+      }
+      
+      if (data) {
+        allEntriesData.push(...data.map(item => ({ ...item, type: 'ecriture' })))
+      }
+      
+      setAllEntries(allEntriesData)
     } catch (error) {
       console.error('Erreur:', error)
     } finally {
@@ -82,6 +134,36 @@ export default function EcrituresPage() {
 
   const getContextLabel = (context: string) => {
     return contextOptions.find(c => c.value === context)?.label || context
+  }
+
+  const getEntryShortText = (entry: any): string => {
+    if (!entry) return ''
+    
+    switch (entry.type) {
+      case 'grace':
+        return entry.texte?.substring(0, 50) + '...'
+      case 'priere':
+        return `Prière pour ${entry.personne_prenom || ''}`
+      case 'ecriture':
+        return entry.reference || ''
+      case 'parole':
+        return entry.texte?.substring(0, 50) + '...'
+      case 'rencontre':
+        return `Rencontre avec ${entry.personne_prenom || ''}`
+      default:
+        return 'Élément'
+    }
+  }
+
+  const getEntryRoute = (entry: any): string => {
+    const routes: { [key: string]: string } = {
+      grace: 'graces',
+      priere: 'prieres',
+      ecriture: 'ecritures',
+      parole: 'paroles',
+      rencontre: 'rencontres'
+    }
+    return routes[entry.type] || ''
   }
 
   if (loading) {
@@ -318,11 +400,14 @@ export default function EcrituresPage() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
             gap: '1.5rem'
           }}>
-            {filteredEcritures.map((ecriture, index) => (
-              <Link
-                key={ecriture.id}
-                href={`/ecritures/${ecriture.id}`}
-                style={{
+            {filteredEcritures.map((ecriture, index) => {
+              const linksCount = getLinksCountForEntry(ecriture.id, spiritualLinks)
+              
+              return (
+                <div key={ecriture.id} style={{ position: 'relative' }}>
+                  <Link
+                    href={`/ecritures/${ecriture.id}`}
+                    style={{
                   background: 'white',
                   borderRadius: '1rem',
                   padding: '1.5rem',
@@ -434,7 +519,93 @@ export default function EcrituresPage() {
                   </span>
                 </div>
               </Link>
-            ))}
+              
+              {/* Badge */}
+              {linksCount > 0 && (
+                <LinkBadge
+                  count={linksCount}
+                  color="#10B981"
+                  size="small"
+                  onClick={() => {
+                    setShowLinksPopup(showLinksPopup === ecriture.id ? null : ecriture.id)
+                  }}
+                />
+              )}
+              
+              {/* Popup */}
+              {showLinksPopup === ecriture.id && linksCount > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '30px',
+                  right: '-8px',
+                  background: 'white',
+                  border: '2px solid #34D399',
+                  borderRadius: '0.75rem',
+                  padding: '0.75rem',
+                  boxShadow: '0 4px 12px rgba(52, 211, 153, 0.3)',
+                  minWidth: '250px',
+                  maxWidth: '350px',
+                  zIndex: 1000
+                }} data-links-popup>
+                  {getLinksForEntry(ecriture.id, 'ecriture', spiritualLinks).map(link => {
+                    const isSource = link.element_source_id === ecriture.id
+                    const targetId = isSource ? link.element_cible_id : link.element_source_id
+                    const targetEntry = allEntries.find(e => e.id === targetId)
+                    
+                    if (!targetEntry) return null
+                    
+                    const linkTypeConfig: { [key: string]: { emoji: string, label: string } } = {
+                      exauce: { emoji: '🙏', label: 'exauce' },
+                      accomplit: { emoji: '✓', label: 'accomplit' },
+                      decoule: { emoji: '→', label: 'découle' },
+                      eclaire: { emoji: '💡', label: 'éclaire' },
+                      echo: { emoji: '🔄', label: 'fait écho' }
+                    }
+                    
+                    const linkType = linkTypeConfig[link.type_lien] || { emoji: '🔗', label: link.type_lien }
+                    
+                    return (
+                      <div
+                        key={link.id}
+                        onClick={() => {
+                          const route = getEntryRoute(targetEntry)
+                          if (route) {
+                            router.push(`/${route}/${targetId}`)
+                          }
+                        }}
+                        style={{
+                          padding: '0.5rem',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          fontSize: '0.875rem',
+                          transition: 'background 0.2s',
+                          marginBottom: '0.25rem'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#F0FDF4'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent'
+                        }}
+                      >
+                        <span style={{ fontSize: '1rem' }}>{linkType.emoji}</span>
+                        <span style={{ flex: 1, color: '#4b5563' }}>
+                          {isSource && `${linkType.label} → `}
+                          {getEntryShortText(targetEntry)}
+                          {!isSource && ` ← ${linkType.label}`}
+                        </span>
+                        <span style={{ opacity: 0.6, fontSize: '0.875rem' }}>👁️</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            )
+          })}
           </div>
         )}
       </div>
