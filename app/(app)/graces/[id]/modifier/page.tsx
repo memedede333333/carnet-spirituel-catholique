@@ -109,7 +109,9 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',        display: 'flex',
+        minHeight: '100vh',
+        backgroundColor: '#FFFBEB',
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
@@ -130,7 +132,9 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
 
   return (
     <div style={{
-      minHeight: '100vh',      padding: '2rem 1rem'
+      minHeight: '100vh',
+      backgroundColor: '#FFFBEB',
+      padding: '2rem 1rem'
     }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <div style={{
@@ -155,21 +159,39 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
               fontSize: '0.875rem',
               opacity: 0.8,
               transition: 'opacity 0.2s'
-            }}>
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}>
               <ArrowLeft size={16} />
               Retour à la grâce
             </Link>
 
-            <h1 style={{
-              fontSize: '2rem',
-              fontWeight: 'bold',
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.75rem'
+              gap: '1rem'
             }}>
-              <Sparkles size={32} />
-              Modifier la grâce
-            </h1>
+              <div style={{
+                background: 'white',
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}>
+                ✨
+              </div>
+              <h1 style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#78350F'
+              }}>
+                Modifier la grâce
+              </h1>
+            </div>
           </div>
 
           {/* Formulaire */}
@@ -432,7 +454,14 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
                   textDecoration: 'none',
                   fontWeight: '500',
                   transition: 'all 0.2s',
-                  display: 'inline-block'
+                  display: 'inline-block',
+                  backgroundColor: 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FEF3C7'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
                 }}
               >
                 Annuler
@@ -453,7 +482,19 @@ export default function ModifierGracePage({ params }: { params: Promise<{ id: st
                   transition: 'all 0.2s',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem'
+                  gap: '0.5rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  transform: 'translateY(0)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!saving) {
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}
               >
                 <Save size={20} />

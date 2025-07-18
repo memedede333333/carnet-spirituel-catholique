@@ -71,7 +71,9 @@ export default function GraceDetailPage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',        display: 'flex',
+        minHeight: '100vh',
+        backgroundColor: '#FFFBEB',
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
@@ -92,7 +94,9 @@ export default function GraceDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div style={{
-      minHeight: '100vh',      padding: '2rem 1rem'
+      minHeight: '100vh',
+      backgroundColor: '#FFFBEB',
+      padding: '2rem 1rem'
     }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <div style={{
@@ -122,26 +126,28 @@ export default function GraceDetailPage({ params }: { params: Promise<{ id: stri
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.5rem',
-                          color: '#7BA7E1',
+                          color: '#78350F',
                           textDecoration: 'none',
                           fontSize: '0.875rem',
                           padding: '0.5rem 1rem',
                           borderRadius: '0.5rem',
-                          border: '1px solid #E6EDFF',
-                          background: '#F0F4FF',
+                          border: '2px solid #FDE68A',
+                          background: 'rgba(255, 255, 255, 0.5)',
                           transition: 'all 0.2s',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          marginBottom: '1rem',
+                          opacity: 0.8
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#E6EDFF';
-                          e.currentTarget.style.borderColor = '#7BA7E1';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)';
+                          e.currentTarget.style.opacity = '1';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#F0F4FF';
-                          e.currentTarget.style.borderColor = '#E6EDFF';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)';
+                          e.currentTarget.style.opacity = '0.8';
                         }}
                       >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={16} />
                         Retour à la relecture
                         <span style={{
                           fontSize: '0.75rem',
@@ -182,26 +188,31 @@ export default function GraceDetailPage({ params }: { params: Promise<{ id: stri
                 gap: '0.75rem'
               }}>
                 <div style={{
-                  background: '#FCD34D',
-                  borderRadius: '0.75rem',
-                  padding: '0.75rem',
+                  background: 'white',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  fontSize: '2rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}>
-                  <Sparkles size={28} style={{ color: '#78350F' }} />
+                  ✨
                 </div>
                 <div>
                   <h1 style={{
-                    fontSize: '1.5rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
-                    marginBottom: '0.25rem'
+                    marginBottom: '0.25rem',
+                    color: '#78350F'
                   }}>
                     Grâce reçue
                   </h1>
                   <p style={{
                     fontSize: '0.875rem',
-                    opacity: 0.8
+                    opacity: 0.8,
+                    color: '#92400E'
                   }}>
                     {format(new Date(grace.created_at), 'EEEE d MMMM yyyy', { locale: fr })}
                   </p>
