@@ -213,7 +213,19 @@ export default function ModifierPrierePage({ params }: { params: Promise<{ id: s
               alignItems: 'center',
               gap: '0.75rem'
             }}>
-              <HandHeart size={32} />
+              <div style={{
+                background: 'white',
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}>
+                🙏
+              </div>
               Modifier la prière
             </h1>
           </div>
