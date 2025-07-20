@@ -48,6 +48,15 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Harmonisation de la police pour TOUS les champs de formulaire */
+input,
+textarea,
+select {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
 body {
   min-height: 100vh;
   background: #fafafa;
