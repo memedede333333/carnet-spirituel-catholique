@@ -81,7 +81,8 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh',        display: 'flex',
+        minHeight: '100vh',
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
@@ -91,7 +92,18 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
           padding: '2rem',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
         }}>
-          <div style={{ fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>📖</div>
+          <div style={{
+            background: 'white',
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            margin: '0 auto 1rem'
+          }}>📖</div>
           <p style={{ color: '#064E3B' }}>Chargement...</p>
         </div>
       </div>
@@ -102,7 +114,8 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <div style={{
-      minHeight: '100vh',      padding: '2rem 1rem'
+      minHeight: '100vh',
+      padding: '2rem 1rem'
     }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <div style={{
@@ -132,23 +145,24 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.5rem',
-                          color: '#7BA7E1',
+                          color: '#064E3B',
                           textDecoration: 'none',
                           fontSize: '0.875rem',
                           padding: '0.5rem 1rem',
                           borderRadius: '0.5rem',
-                          border: '1px solid #E6EDFF',
-                          background: '#F0F4FF',
+                          border: '1px solid #A7F3D0',
+                          background: '#F0FDF4',
                           transition: 'all 0.2s',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          marginBottom: '1rem'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#E6EDFF';
-                          e.currentTarget.style.borderColor = '#7BA7E1';
+                          e.currentTarget.style.background = '#D1FAE5';
+                          e.currentTarget.style.borderColor = '#6EE7B7';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#F0F4FF';
-                          e.currentTarget.style.borderColor = '#E6EDFF';
+                          e.currentTarget.style.background = '#F0FDF4';
+                          e.currentTarget.style.borderColor = '#A7F3D0';
                         }}
                       >
                         <ArrowLeft size={20} />
@@ -192,14 +206,17 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
                 gap: '0.75rem'
               }}>
                 <div style={{
-                  background: '#6EE7B7',
-                  borderRadius: '0.75rem',
-                  padding: '0.75rem',
+                  background: 'white',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  fontSize: '2rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}>
-                  <Book size={28} style={{ color: '#064E3B' }} />
+                  📖
                 </div>
                 <div>
                   <h1 style={{

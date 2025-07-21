@@ -111,7 +111,19 @@ export default function NouvelleEcriturePage() {
               alignItems: 'center',
               gap: '0.75rem'
             }}>
-              <Book size={32} />
+              <div style={{
+                background: 'white',
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}>
+                📖
+              </div>
               Nouveau passage biblique
             </h1>
           </div>
@@ -159,7 +171,8 @@ export default function NouvelleEcriturePage() {
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#F0FDF4'
+                    backgroundColor: '#F0FDF4',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
                   onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
@@ -188,7 +201,8 @@ export default function NouvelleEcriturePage() {
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#F0FDF4'
+                    backgroundColor: '#F0FDF4',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
                   onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
@@ -300,7 +314,8 @@ export default function NouvelleEcriturePage() {
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#F0FDF4'
+                    backgroundColor: '#F0FDF4',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
                   onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
@@ -335,7 +350,8 @@ export default function NouvelleEcriturePage() {
                   resize: 'vertical',
                   outline: 'none',
                   transition: 'border-color 0.2s',
-                  backgroundColor: '#F0FDF4'
+                  backgroundColor: '#F0FDF4',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
                 onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
@@ -374,7 +390,8 @@ export default function NouvelleEcriturePage() {
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#F0FDF4'
+                    backgroundColor: '#F0FDF4',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
                   onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
@@ -406,7 +423,8 @@ export default function NouvelleEcriturePage() {
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#F0FDF4'
+                    backgroundColor: '#F0FDF4',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#A7F3D0'}
                   onBlur={(e) => e.target.style.borderColor = '#D1FAE5'}
@@ -430,7 +448,16 @@ export default function NouvelleEcriturePage() {
                   textDecoration: 'none',
                   fontWeight: '500',
                   transition: 'all 0.2s',
-                  display: 'inline-block'
+                  display: 'inline-block',
+                  background: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#F0FDF4'
+                  e.currentTarget.style.borderColor = '#6EE7B7'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white'
+                  e.currentTarget.style.borderColor = '#A7F3D0'
                 }}
               >
                 Annuler
@@ -451,7 +478,22 @@ export default function NouvelleEcriturePage() {
                   transition: 'all 0.2s',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem'
+                  gap: '0.5rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!saving) {
+                    e.currentTarget.style.background = '#34D399'
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!saving) {
+                    e.currentTarget.style.background = '#6EE7B7'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }
                 }}
               >
                 <Plus size={20} />
