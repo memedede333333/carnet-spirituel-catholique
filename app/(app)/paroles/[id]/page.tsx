@@ -199,14 +199,17 @@ export default function ParoleDetailPage({ params }: { params: Promise<{ id: str
                 gap: '0.75rem'
               }}>
                 <div style={{
-                  background: '#7DD3FC',
-                  borderRadius: '0.75rem',
-                  padding: '0.75rem',
+                  background: 'white',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  fontSize: '2rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}>
-                  <MessageSquare size={28} style={{ color: '#075985' }} />
+                  🕊️
                 </div>
                 <div>
                   <h1 style={{
@@ -426,7 +429,18 @@ export default function ParoleDetailPage({ params }: { params: Promise<{ id: str
                     borderRadius: '0.5rem',
                     textDecoration: 'none',
                     fontWeight: '500',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#38BDF8'
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#7DD3FC'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
                   }}
                 >
                   <CheckCircle size={20} />

@@ -115,7 +115,19 @@ export default function NouvelleParolePage() {
               alignItems: 'center',
               gap: '0.75rem'
             }}>
-              <MessageSquare size={32} />
+              <div style={{
+                background: 'white',
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}>
+                🕊️
+              </div>
               Nouvelle parole de connaissance
             </h1>
           </div>
@@ -158,7 +170,8 @@ export default function NouvelleParolePage() {
                   resize: 'vertical',
                   outline: 'none',
                   transition: 'border-color 0.2s',
-                  backgroundColor: '#F0F9FF'
+                  backgroundColor: '#F0F9FF',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#BAE6FD'}
                 onBlur={(e) => e.target.style.borderColor = '#E0F2FE'}
@@ -190,7 +203,8 @@ export default function NouvelleParolePage() {
                   fontSize: '1rem',
                   outline: 'none',
                   transition: 'border-color 0.2s',
-                  backgroundColor: '#F0F9FF'
+                  backgroundColor: '#F0F9FF',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#BAE6FD'}
                 onBlur={(e) => e.target.style.borderColor = '#E0F2FE'}
@@ -268,7 +282,8 @@ export default function NouvelleParolePage() {
                     outline: 'none',
                     transition: 'border-color 0.2s',
                     backgroundColor: '#F0F9FF',
-                    marginTop: '0.75rem'
+                    marginTop: '0.75rem',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#BAE6FD'}
                   onBlur={(e) => e.target.style.borderColor = '#E0F2FE'}
@@ -347,7 +362,8 @@ export default function NouvelleParolePage() {
                     outline: 'none',
                     transition: 'border-color 0.2s',
                     backgroundColor: '#F0F9FF',
-                    marginTop: '0.75rem'
+                    marginTop: '0.75rem',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#BAE6FD'}
                   onBlur={(e) => e.target.style.borderColor = '#E0F2FE'}
@@ -392,7 +408,16 @@ export default function NouvelleParolePage() {
                   textDecoration: 'none',
                   fontWeight: '500',
                   transition: 'all 0.2s',
-                  display: 'inline-block'
+                  display: 'inline-block',
+                  background: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#F0F9FF'
+                  e.currentTarget.style.borderColor = '#7DD3FC'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white'
+                  e.currentTarget.style.borderColor = '#BAE6FD'
                 }}
               >
                 Annuler
@@ -413,7 +438,22 @@ export default function NouvelleParolePage() {
                   transition: 'all 0.2s',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem'
+                  gap: '0.5rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!saving) {
+                    e.currentTarget.style.background = '#38BDF8'
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!saving) {
+                    e.currentTarget.style.background = '#7DD3FC'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }
                 }}
               >
                 <Plus size={20} />
