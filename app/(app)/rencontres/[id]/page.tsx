@@ -94,8 +94,21 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
           padding: '2rem',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
         }}>
-          <div style={{ fontSize: '2rem', marginBottom: '1rem', textAlign: 'center' }}>🤝</div>
-          <p style={{ color: '#831843' }}>Chargement...</p>
+          <div style={{
+            background: 'white',
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem',
+            boxShadow: '0 2px 4px rgba(198, 93, 0, 0.2)',
+            margin: '0 auto 1rem'
+          }}>
+            🤝
+          </div>
+          <p style={{ color: '#451A03' }}>Chargement...</p>
         </div>
       </div>
     )
@@ -116,9 +129,9 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
         }}>
           {/* En-tête rose pastel */}
           <div style={{
-            background: 'linear-gradient(135deg, #FCE7F3, #FBCFE8)',
+            background: 'linear-gradient(135deg, #FED7AA, #FDBA74)',
             padding: '2rem',
-            color: '#831843'
+            color: '#451A03'
           }}>
             {/* Bouton retour conditionnel avec vue */}
               {(() => {
@@ -135,7 +148,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.5rem',
-                          color: '#7BA7E1',
+                          color: '#451A03',
                           textDecoration: 'none',
                           fontSize: '0.875rem',
                           padding: '0.5rem 1rem',
@@ -171,7 +184,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              color: '#831843',
+              color: '#451A03',
               textDecoration: 'none',
               marginBottom: '1rem',
               fontSize: '0.875rem',
@@ -195,14 +208,17 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                 gap: '0.75rem'
               }}>
                 <div style={{
-                  background: '#F9A8D4',
-                  borderRadius: '0.75rem',
+                  background: 'white',
+                  borderRadius: '50%',
                   padding: '0.75rem',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  width: '48px',
+                  height: '48px',
+                  boxShadow: '0 2px 4px rgba(198, 93, 0, 0.2)'
                 }}>
-                  <Users size={28} style={{ color: '#831843' }} />
+                  <Users size={28} style={{ color: '#451A03' }} />
                 </div>
                 <div>
                   <h1 style={{
@@ -229,7 +245,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                   href={`/rencontres/${rencontre.id}/modifier`}
                   style={{
                     background: 'white',
-                    color: '#831843',
+                    color: '#451A03',
                     padding: '0.5rem',
                     borderRadius: '0.5rem',
                     display: 'flex',
@@ -238,6 +254,14 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                     textDecoration: 'none',
                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                     transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
                   }}
                   title="Modifier"
                 >
@@ -269,8 +293,8 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
           <div style={{ padding: '2rem' }}>
             {/* Description */}
             <div style={{
-              background: '#FFF5F7',
-              border: '2px solid #FCE7F3',
+              background: '#FFF7ED',
+              border: '2px solid #FED7AA',
               borderRadius: '0.75rem',
               padding: '1.5rem',
               marginBottom: '2rem'
@@ -278,7 +302,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
               <h3 style={{
                 fontSize: '1.125rem',
                 fontWeight: '600',
-                color: '#831843',
+                color: '#451A03',
                 marginBottom: '0.75rem'
               }}>
                 Description de la rencontre
@@ -300,7 +324,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
               marginBottom: '2rem'
             }}>
               <div style={{
-                background: '#FFF5F7',
+                background: '#FFF7ED',
                 borderRadius: '0.75rem',
                 padding: '1rem'
               }}>
@@ -309,18 +333,18 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                   alignItems: 'center',
                   gap: '0.5rem',
                   marginBottom: '0.5rem',
-                  color: '#9F1239'
+                  color: '#92400E'
                 }}>
                   <Calendar size={20} />
                   <span style={{ fontWeight: '500' }}>Date</span>
                 </div>
-                <p style={{ color: '#831843', fontSize: '1.125rem' }}>
+                <p style={{ color: '#451A03', fontSize: '1.125rem' }}>
                   {format(new Date(rencontre.date), 'd MMMM yyyy', { locale: fr })}
                 </p>
               </div>
 
               <div style={{
-                background: '#FFF5F7',
+                background: '#FFF7ED',
                 borderRadius: '0.75rem',
                 padding: '1rem'
               }}>
@@ -329,18 +353,18 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                   alignItems: 'center',
                   gap: '0.5rem',
                   marginBottom: '0.5rem',
-                  color: '#9F1239'
+                  color: '#92400E'
                 }}>
                   <MapPin size={20} />
                   <span style={{ fontWeight: '500' }}>Lieu</span>
                 </div>
-                <p style={{ color: '#831843', fontSize: '1.125rem' }}>
+                <p style={{ color: '#451A03', fontSize: '1.125rem' }}>
                   {rencontre.lieu}
                 </p>
               </div>
 
               <div style={{
-                background: '#FFF5F7',
+                background: '#FFF7ED',
                 borderRadius: '0.75rem',
                 padding: '1rem'
               }}>
@@ -349,12 +373,12 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                   alignItems: 'center',
                   gap: '0.5rem',
                   marginBottom: '0.5rem',
-                  color: '#9F1239'
+                  color: '#92400E'
                 }}>
                   <Clock size={20} />
                   <span style={{ fontWeight: '500' }}>Ajouté</span>
                 </div>
-                <p style={{ color: '#831843', fontSize: '1.125rem' }}>
+                <p style={{ color: '#451A03', fontSize: '1.125rem' }}>
                   {format(new Date(rencontre.created_at), 'd MMM yyyy', { locale: fr })}
                 </p>
               </div>
@@ -366,7 +390,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                 <h3 style={{
                   fontSize: '1.125rem',
                   fontWeight: '600',
-                  color: '#831843',
+                  color: '#451A03',
                   marginBottom: '1rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -378,7 +402,8 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                 
                 {rencontre.fruit_immediat && (
                   <div style={{
-                    background: '#FEF3C7',
+                    background: '#FFFBEB',
+                    border: '1px solid #FEF3C7',
                     borderRadius: '0.75rem',
                     padding: '1rem',
                     marginBottom: '1rem'
@@ -404,7 +429,8 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
 
                 {rencontre.fruit_espere && (
                   <div style={{
-                    background: '#E0E7FF',
+                    background: '#F0F4FF',
+                    border: '1px solid #E0E7FF',
                     borderRadius: '0.75rem',
                     padding: '1rem'
                   }}>
@@ -433,12 +459,12 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
             <div style={{
               textAlign: 'center',
               padding: '2rem',
-              background: '#FFF5F7',
+              background: '#FFF7ED',
               borderRadius: '0.75rem',
-              border: '2px dashed #FBCFE8'
+              border: '2px dashed #FED7AA'
             }}>
               <p style={{
-                color: '#9F1239',
+                color: '#92400E',
                 marginBottom: '1rem',
                 fontSize: '1.125rem'
               }}>
@@ -450,13 +476,24 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  background: '#F9A8D4',
-                  color: '#831843',
+                  background: '#C65D00',
+                  color: 'white',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
                   textDecoration: 'none',
                   fontWeight: '500',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#D97706'
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#C65D00'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}
               >
                 <Edit size={20} />
@@ -468,14 +505,14 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
             <div style={{
               marginTop: '3rem',
               padding: '1.5rem',
-              background: '#FFF5F7',
+              background: '#FFF7ED',
               borderRadius: '0.75rem',
               textAlign: 'center',
-              borderLeft: '4px solid #F9A8D4'
+              borderLeft: '4px solid #C65D00'
             }}>
               <p style={{
                 fontSize: '1rem',
-                color: '#831843',
+                color: '#451A03',
                 fontStyle: 'italic',
                 marginBottom: '0.5rem'
               }}>
@@ -483,7 +520,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
               </p>
               <p style={{
                 fontSize: '0.875rem',
-                color: '#9F1239'
+                color: '#92400E'
               }}>
                 Matthieu 25, 35
               </p>

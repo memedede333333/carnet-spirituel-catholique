@@ -93,15 +93,15 @@ export default function NouvelleRencontrePage() {
         }}>
           {/* En-tête rose pastel */}
           <div style={{
-            background: 'linear-gradient(135deg, #FCE7F3, #FBCFE8)',
+            background: 'linear-gradient(135deg, #FED7AA, #FDBA74)',
             padding: '2rem',
-            color: '#831843'
+            color: '#451A03'
           }}>
             <Link href="/rencontres" style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              color: '#831843',
+              color: '#451A03',
               textDecoration: 'none',
               marginBottom: '1rem',
               fontSize: '0.875rem',
@@ -119,7 +119,19 @@ export default function NouvelleRencontrePage() {
               alignItems: 'center',
               gap: '0.75rem'
             }}>
-              <Users size={32} />
+              <div style={{
+                background: 'white',
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                boxShadow: '0 2px 4px rgba(198, 93, 0, 0.2)'
+              }}>
+                🤝
+              </div>
               Nouvelle rencontre missionnaire
             </h1>
           </div>
@@ -146,7 +158,7 @@ export default function NouvelleRencontrePage() {
                 gap: '0.5rem',
                 marginBottom: '0.5rem',
                 fontWeight: '500',
-                color: '#831843'
+                color: '#451A03'
               }}>
                 <User size={20} />
                 Personne rencontrée
@@ -163,15 +175,16 @@ export default function NouvelleRencontrePage() {
                   placeholder="Prénom *"
                   style={{
                     padding: '0.75rem',
-                    border: '2px solid #FCE7F3',
+                    border: '2px solid #FED7AA',
                     borderRadius: '0.5rem',
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#FFF5F7'
+                    backgroundColor: '#FFF7ED',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#FBCFE8'}
-                  onBlur={(e) => e.target.style.borderColor = '#FCE7F3'}
+                  onFocus={(e) => e.target.style.borderColor = '#FDBA74'}
+                  onBlur={(e) => e.target.style.borderColor = '#FED7AA'}
                 />
                 <input
                   type="text"
@@ -180,15 +193,16 @@ export default function NouvelleRencontrePage() {
                   placeholder="Nom (optionnel)"
                   style={{
                     padding: '0.75rem',
-                    border: '2px solid #FCE7F3',
+                    border: '2px solid #FED7AA',
                     borderRadius: '0.5rem',
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#FFF5F7'
+                    backgroundColor: '#FFF7ED',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#FBCFE8'}
-                  onBlur={(e) => e.target.style.borderColor = '#FCE7F3'}
+                  onFocus={(e) => e.target.style.borderColor = '#FDBA74'}
+                  onBlur={(e) => e.target.style.borderColor = '#FED7AA'}
                 />
               </div>
             </div>
@@ -207,7 +221,7 @@ export default function NouvelleRencontrePage() {
                   gap: '0.5rem',
                   marginBottom: '0.5rem',
                   fontWeight: '500',
-                  color: '#831843'
+                  color: '#451A03'
                 }}>
                   <MapPin size={20} />
                   Lieu de la rencontre
@@ -220,15 +234,16 @@ export default function NouvelleRencontrePage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '2px solid #FCE7F3',
+                    border: '2px solid #FED7AA',
                     borderRadius: '0.5rem',
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#FFF5F7'
+                    backgroundColor: '#FFF7ED',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#FBCFE8'}
-                  onBlur={(e) => e.target.style.borderColor = '#FCE7F3'}
+                  onFocus={(e) => e.target.style.borderColor = '#FDBA74'}
+                  onBlur={(e) => e.target.style.borderColor = '#FED7AA'}
                 />
               </div>
 
@@ -239,7 +254,7 @@ export default function NouvelleRencontrePage() {
                   gap: '0.5rem',
                   marginBottom: '0.5rem',
                   fontWeight: '500',
-                  color: '#831843'
+                  color: '#451A03'
                 }}>
                   <Calendar size={20} />
                   Date de la rencontre
@@ -251,15 +266,16 @@ export default function NouvelleRencontrePage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '2px solid #FCE7F3',
+                    border: '2px solid #FED7AA',
                     borderRadius: '0.5rem',
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#FFF5F7'
+                    backgroundColor: '#FFF7ED',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#FBCFE8'}
-                  onBlur={(e) => e.target.style.borderColor = '#FCE7F3'}
+                  onFocus={(e) => e.target.style.borderColor = '#FDBA74'}
+                  onBlur={(e) => e.target.style.borderColor = '#FED7AA'}
                 />
               </div>
             </div>
@@ -270,7 +286,7 @@ export default function NouvelleRencontrePage() {
                 display: 'block',
                 marginBottom: '0.75rem',
                 fontWeight: '500',
-                color: '#831843'
+                color: '#451A03'
               }}>
                 Contexte de la rencontre
               </label>
@@ -288,11 +304,23 @@ export default function NouvelleRencontrePage() {
                       alignItems: 'center',
                       padding: '1rem',
                       borderRadius: '0.75rem',
-                      border: `2px solid ${contexte === option.value ? '#FBCFE8' : '#E5E7EB'}`,
-                      background: contexte === option.value ? '#FFF5F7' : 'white',
+                      border: `2px solid ${contexte === option.value ? '#FDBA74' : '#E5E7EB'}`,
+                      background: contexte === option.value ? '#FFF7ED' : 'white',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (contexte !== option.value) {
+                        e.currentTarget.style.borderColor = '#FED7AA'
+                        e.currentTarget.style.background = '#FFF7ED'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (contexte !== option.value) {
+                        e.currentTarget.style.borderColor = '#E5E7EB'
+                        e.currentTarget.style.background = 'white'
+                      }
                     }}
                   >
                     <input
@@ -308,7 +336,7 @@ export default function NouvelleRencontrePage() {
                     </span>
                     <span style={{
                       fontSize: '0.875rem',
-                      color: contexte === option.value ? '#831843' : '#4B5563'
+                      color: contexte === option.value ? '#451A03' : '#4B5563'
                     }}>
                       {option.label}
                     </span>
@@ -323,7 +351,7 @@ export default function NouvelleRencontrePage() {
                 display: 'block',
                 marginBottom: '0.5rem',
                 fontWeight: '500',
-                color: '#831843'
+                color: '#451A03'
               }}>
                 Description de la rencontre
               </label>
@@ -335,16 +363,17 @@ export default function NouvelleRencontrePage() {
                 style={{
                   width: '100%',
                   padding: '0.75rem',
-                  border: '2px solid #FCE7F3',
+                  border: '2px solid #FED7AA',
                   borderRadius: '0.5rem',
                   fontSize: '1rem',
                   resize: 'vertical',
                   outline: 'none',
                   transition: 'border-color 0.2s',
-                  backgroundColor: '#FFF5F7'
+                  backgroundColor: '#FFF7ED',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#FBCFE8'}
-                onBlur={(e) => e.target.style.borderColor = '#FCE7F3'}
+                onFocus={(e) => e.target.style.borderColor = '#FDBA74'}
+                onBlur={(e) => e.target.style.borderColor = '#FED7AA'}
               />
             </div>
 
@@ -362,7 +391,7 @@ export default function NouvelleRencontrePage() {
                   gap: '0.5rem',
                   marginBottom: '0.5rem',
                   fontWeight: '500',
-                  color: '#831843'
+                  color: '#451A03'
                 }}>
                   <Heart size={20} />
                   Fruit immédiat (optionnel)
@@ -375,16 +404,17 @@ export default function NouvelleRencontrePage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '2px solid #FCE7F3',
+                    border: '2px solid #FEF3C7',
                     borderRadius: '0.5rem',
                     fontSize: '1rem',
                     resize: 'vertical',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#FFF5F7'
+                    backgroundColor: '#FFFBEB',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#FBCFE8'}
-                  onBlur={(e) => e.target.style.borderColor = '#FCE7F3'}
+                  onFocus={(e) => e.target.style.borderColor = '#FDE047'}
+                  onBlur={(e) => e.target.style.borderColor = '#FEF3C7'}
                 />
               </div>
 
@@ -395,7 +425,7 @@ export default function NouvelleRencontrePage() {
                   gap: '0.5rem',
                   marginBottom: '0.5rem',
                   fontWeight: '500',
-                  color: '#831843'
+                  color: '#451A03'
                 }}>
                   <Heart size={20} />
                   Fruit espéré (optionnel)
@@ -408,16 +438,17 @@ export default function NouvelleRencontrePage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    border: '2px solid #FCE7F3',
+                    border: '2px solid #E0E7FF',
                     borderRadius: '0.5rem',
                     fontSize: '1rem',
                     resize: 'vertical',
                     outline: 'none',
                     transition: 'border-color 0.2s',
-                    backgroundColor: '#FFF5F7'
+                    backgroundColor: '#F0F4FF',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#FBCFE8'}
-                  onBlur={(e) => e.target.style.borderColor = '#FCE7F3'}
+                  onFocus={(e) => e.target.style.borderColor = '#93C5FD'}
+                  onBlur={(e) => e.target.style.borderColor = '#E0E7FF'}
                 />
               </div>
             </div>
@@ -454,12 +485,21 @@ export default function NouvelleRencontrePage() {
                 style={{
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
-                  border: '2px solid #FBCFE8',
-                  color: '#831843',
+                  border: '2px solid #FED7AA',
+                  color: '#451A03',
                   textDecoration: 'none',
                   fontWeight: '500',
                   transition: 'all 0.2s',
-                  display: 'inline-block'
+                  display: 'inline-block',
+                  background: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#FFF7ED'
+                  e.currentTarget.style.borderColor = '#FDBA74'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white'
+                  e.currentTarget.style.borderColor = '#FED7AA'
                 }}
               >
                 Annuler
@@ -471,8 +511,8 @@ export default function NouvelleRencontrePage() {
                 style={{
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
-                  background: '#F9A8D4',
-                  color: '#831843',
+                  background: '#C65D00',
+                  color: 'white',
                   border: 'none',
                   fontWeight: '500',
                   cursor: saving ? 'not-allowed' : 'pointer',
@@ -480,7 +520,22 @@ export default function NouvelleRencontrePage() {
                   transition: 'all 0.2s',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem'
+                  gap: '0.5rem',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!saving) {
+                    e.currentTarget.style.backgroundColor = '#D97706'
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!saving) {
+                    e.currentTarget.style.backgroundColor = '#C65D00'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }
                 }}
               >
                 <Plus size={20} />
