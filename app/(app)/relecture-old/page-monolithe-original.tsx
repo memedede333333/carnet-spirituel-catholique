@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Heart, BookOpen, Users, MessageSquare, Filter, Calendar, ChevronRight, Eye, Lightbulb, Zap, Link as LinkIcon, Compass, Cross, Church, Flower, Star, Check, HandHeart, ArrowRight, Trash2, Settings } from 'lucide-react'
+import { ArrowLeft, Sparkles, Heart, BookOpen, Users, MessageSquare, Filter, Calendar, ChevronRight, Eye, Lightbulb, Zap, Link as LinkIcon, Compass, Cross, Church, Flower, Star, Check, HandHeart, ArrowRight, Trash2 } from 'lucide-react'
 import { format, parseISO, isWithinInterval, subMonths, differenceInDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import LinkBadge from '@/app/components/LinkBadge'
+
 import ConstellationView from '@/app/components/ConstellationView'
+import LinkBadge from '@/app/components/LinkBadge'
 import LinksList from '@/app/components/LinksList'
 import { areEntriesLinked as checkEntriesLinked, getLinkTypeBetween } from '@/app/lib/spiritual-links-helpers'
-import PanneauLateralLiens from './components/links/PanneauLateralLiens'
-import WidgetLiensRecents from './components/links/WidgetLiensRecents'
 
 export default function RelecturePage() {
   const [loading, setLoading] = useState(true)
@@ -26,8 +26,6 @@ export default function RelecturePage() {
   const [viewMode, setViewMode] = useState<'chronologique' | 'thematique' | 'consolations' | 'jardin' | 'fleuve' | 'constellation' | 'ensemble' | 'gestion' | 'atelier'>('chronologique')
   const [showLinkModal, setShowLinkModal] = useState(false)
   const [selectedEntryForLink, setSelectedEntryForLink] = useState<any>(null)
-  const [showPanneauLiens, setShowPanneauLiens] = useState(false)
-  const [entryForNewLink, setEntryForNewLink] = useState<any>(null)
   const [possibleLinks, setPossibleLinks] = useState<any[]>([])
   const [linkMode, setLinkMode] = useState(false)
   const [firstSelectedEntry, setFirstSelectedEntry] = useState<any>(null)
@@ -353,14 +351,13 @@ useEffect(() => {
           strength: 'fort',
           explanation: 'Vous avez identifié un lien spirituel'
         }])
-        setEntryForNewLink(firstSelectedEntry)
-        setShowPanneauLiens(true)
+        setShowLinkModal(true)
         setLinkMode(false)
         setFirstSelectedEntry(null)
       }
     } else {
-      setEntryForNewLink(entry)
-      setShowPanneauLiens(true)
+      setSelectedEntryForLink(entry)
+      setShowLinkModal(true)
     }
   }
 
@@ -785,112 +782,114 @@ useEffect(() => {
           )}
         </div>
 
-        {/* NOUVELLE NAVIGATION EN 2 NIVEAUX */}
+        {/* Modes de vue */}
         <div style={{
           background: 'white',
           borderRadius: '1rem',
           padding: '1rem',
           marginBottom: '2rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          flexWrap: 'wrap'
         }}>
-          {/* Niveau 1 : Actions sur les liens */}
-          <div style={{
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '1rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '1rem'
-          }}>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={() => setViewMode('atelier')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  background: viewMode === 'atelier' ? '#7BA7E1' : '#f3f4f6',
-                  color: viewMode === 'atelier' ? 'white' : '#4b5563',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <LinkIcon size={18} />
-                Créer des liens
-              </button>
-              
-              <button
-                onClick={() => setViewMode('gestion')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  background: viewMode === 'gestion' ? '#7BA7E1' : '#f3f4f6',
-                  color: viewMode === 'gestion' ? 'white' : '#4b5563',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <Settings size={18} />
-                Gérer mes liens
-              </button>
-            </div>
-            
-            <div style={{
+          <button
+            onClick={() => setViewMode('chronologique')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'chronologique' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'chronologique' ? 'white' : '#6b7280',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              color: '#6b7280',
-              fontSize: '0.875rem'
-            }}>
-              <LinkIcon size={16} />
-              <span>{spiritualLinks.length} connexions spirituelles</span>
-            </div>
-          </div>
+              transition: 'all 0.2s'
+            }}
+          >
+            <Calendar size={16} />
+            Vue chronologique
+          </button>
+          <button
+            onClick={() => setViewMode('thematique')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'thematique' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'thematique' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <BookOpen size={16} />
+            Vue thématique
+          </button>
+          <button
+            onClick={() => setViewMode('consolations')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'consolations' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'consolations' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <span style={{fontSize: "16px"}}>❤️</span>
+            Consolations & désolations
+          </button>
+          <button
+            onClick={() => setViewMode('jardin')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'jardin' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'jardin' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Flower size={16} />
+            Jardin des grâces
+          </button>
+          <button
+            onClick={() => setViewMode('ensemble')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: viewMode === 'ensemble' ? '#7BA7E1' : 'transparent',
+              color: viewMode === 'ensemble' ? 'white' : '#6b7280',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              minWidth: 'fit-content'
+            }}
+          >
+            <Eye size={16} />
+            Vue d'ensemble
+          </button>
           
-          {/* Niveau 2 : Vues de contemplation */}
-          <div style={{
-            display: 'flex',
-            gap: '0.5rem',
-            flexWrap: 'wrap',
-            justifyContent: 'center'
-          }}>
-            {[
-              { key: 'chronologique' as const, icon: Calendar, label: 'Vue chronologique' },
-              { key: 'thematique' as const, icon: BookOpen, label: 'Vue thématique' },
-              { key: 'consolations' as const, icon: Heart, label: 'Mouvements spirituels' },
-              { key: 'jardin' as const, icon: Flower, label: 'Jardin des grâces' },
-              { key: 'ensemble' as const, icon: Eye, label: "Vue d'ensemble" }
-            ].map(({ key, icon: Icon, label }) => (
-              <button
-                key={key}
-                onClick={() => setViewMode(key)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  background: viewMode === key ? '#7BA7E1' : 'transparent',
-                  color: viewMode === key ? 'white' : '#6b7280',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <Icon size={16} />
-                {label}
-              </button>
-            ))}
-          </div>
+          
+          
         </div>
 
         {/* Filtres élégants */}
@@ -1245,8 +1244,8 @@ useEffect(() => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  setEntryForNewLink(entry)
-                                  setShowPanneauLiens(true)
+                                  setSelectedEntryForLink(entry)
+                                  setShowLinkModal(true)
                                 }}
                                 style={{
                                   display: 'inline-flex',
@@ -3454,34 +3453,6 @@ transform: 'translateX(-50%)',
           0% { opacity: 0; transform: translateY(-10px); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        
-        @media (max-width: 768px) {
-          /* Masquer la ligne centrale sur mobile */
-          .timeline-line,
-          [style*="left: 50%"][style*="width: 2px"] {
-            display: none !important;
-          }
-          
-          /* Cartes en pleine largeur sur mobile */
-          [style*="width: 45%"] {
-            width: calc(100% - 2rem) !important;
-            margin-left: 1rem !important;
-            margin-right: 1rem !important;
-          }
-          
-          /* Ajuster les connecteurs */
-          [style*="left: 50%"][style*="width: 20px"] {
-            left: 1rem !important;
-          }
-          
-          /* Vue chronologique : éviter le débordement */
-          .card,
-          [style*="background: white"][style*="borderRadius: 1rem"] {
-            max-width: 100%;
-            overflow-wrap: break-word;
-            word-wrap: break-word;
-          }
-        }
                 @keyframes glow {
           0% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
           50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 30px rgba(168, 85, 247, 0.6); }
@@ -3508,37 +3479,6 @@ transform: 'translateX(-50%)',
           to { transform: rotate(360deg); }
         }
       `}</style>
-      
-      {/* Widget liens récents - SEULEMENT si on n'est PAS dans la vue atelier */}
-      {viewMode !== 'atelier' && (
-        <WidgetLiensRecents
-          recentLinks={spiritualLinks}
-          entries={entries}
-          getEntryText={getEntryText}
-          getTypeConfig={getTypeConfig}
-        />
-      )}
-      
-      {/* Panneau latéral de création de liens */}
-      <PanneauLateralLiens
-        isOpen={showPanneauLiens}
-        onClose={() => {
-          setShowPanneauLiens(false)
-          setEntryForNewLink(null)
-        }}
-        sourceEntry={entryForNewLink}
-        allEntries={entries}
-        onCreateLink={(source, dest, type) => {
-          saveSpiritualLink(
-            source,
-            dest,
-            type,
-            `${getTypeConfig(source.type).label} ${type} ${getTypeConfig(dest.type).label}`
-          )
-        }}
-        getEntryText={getEntryText}
-        getTypeConfig={getTypeConfig}
-      />
     </div>
   )
 }
