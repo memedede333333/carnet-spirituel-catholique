@@ -12,7 +12,9 @@ import ConstellationView from '@/app/components/ConstellationView'
 import LinksList from '@/app/components/LinksList'
 import { areEntriesLinked as checkEntriesLinked, getLinkTypeBetween } from '@/app/lib/spiritual-links-helpers'
 import PanneauLateralLiens from './components/links/PanneauLateralLiens'
-import WidgetLiensRecents from './components/links/WidgetLiensRecents'
+// Widget supprimé - garder uniquement dans la vue atelier
+// import WidgetLiensRecents from './components/links/WidgetLiensRecents'
+import RappelsDoux from './components/shared/RappelsDoux'
 
 export default function RelecturePage() {
   const [loading, setLoading] = useState(true)
@@ -29,8 +31,6 @@ export default function RelecturePage() {
   const [showPanneauLiens, setShowPanneauLiens] = useState(false)
   const [entryForNewLink, setEntryForNewLink] = useState<any>(null)
   const [possibleLinks, setPossibleLinks] = useState<any[]>([])
-  const [linkMode, setLinkMode] = useState(false)
-  const [firstSelectedEntry, setFirstSelectedEntry] = useState<any>(null)
   const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
   const [updatingLink, setUpdatingLink] = useState<string | null>(null)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
@@ -195,15 +195,7 @@ useEffect(() => {
       differenceInDays(now, new Date(e.date)) > 90
     )
     
-    if (oldPrayers.length > 0 && Math.random() < 0.3) { // 30% de chance d'afficher
-      const prayer = oldPrayers[Math.floor(Math.random() * oldPrayers.length)]
-      suggestions.push({
-        emoji: "🙏",
-        text: `${prayer.personne_prenom}, pour qui tu as prié, traverse peut-être ton esprit aujourd'hui...`,
-        color: '#6366f1',
-        action: 'Prendre des nouvelles'
-      })
-    }
+    // Les rappels doux sont maintenant gérés par le composant RappelsDoux
     
     // Détecter les liens possibles
     const recentPrayers = filteredEntries.filter(e => e.type === 'priere' && new Date(e.date) > subMonths(now, 1))
@@ -340,28 +332,9 @@ useEffect(() => {
   }
 
   const handleLinkClick = (entry: any) => {
-    if (linkMode) {
-      if (!firstSelectedEntry) {
-        setFirstSelectedEntry(entry)
-      } else {
-        // Créer le lien entre les deux entrées
-        setSelectedEntryForLink(firstSelectedEntry)
-        setPossibleLinks([{
-          entry: entry,
-          type: 'echo',
-          label: 'Lien créé manuellement',
-          strength: 'fort',
-          explanation: 'Vous avez identifié un lien spirituel'
-        }])
-        setEntryForNewLink(firstSelectedEntry)
-        setShowPanneauLiens(true)
-        setLinkMode(false)
-        setFirstSelectedEntry(null)
-      }
-    } else {
-      setEntryForNewLink(entry)
-      setShowPanneauLiens(true)
-    }
+    // Maintenant, on ouvre toujours le panneau pour créer un lien
+    setEntryForNewLink(entry)
+    setShowPanneauLiens(true)
   }
 
   const getFilteredLinks = () => {
@@ -699,91 +672,7 @@ useEffect(() => {
       </div>
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
-        {/* Barre d'outils */}
-        <div style={{
-          background: 'white',
-          borderRadius: '1rem',
-          padding: '1rem',
-          marginBottom: '1rem',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => {
-                setLinkMode(!linkMode)
-                setFirstSelectedEntry(null)
-              }}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                background: linkMode ? '#7BA7E1' : '#f3f4f6',
-                color: linkMode ? 'white' : '#4b5563',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                transition: 'all 0.2s'
-              }}
-            >
-              <LinkIcon size={16} />
-              Mode Lien {linkMode && '(actif)'}
-            </button>
-            <button
-            onClick={() => setViewMode('gestion')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              background: viewMode === 'gestion' ? '#7BA7E1' : 'transparent',
-              color: viewMode === 'gestion' ? 'white' : '#6b7280',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              transition: 'all 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              minWidth: 'fit-content'
-            }}
-          >
-            <LinkIcon size={16} />
-            Gestion des liens
-          </button>
-          
-          <button
-            onClick={() => setViewMode('atelier')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              background: viewMode === 'atelier' ? '#7BA7E1' : 'transparent',
-              color: viewMode === 'atelier' ? 'white' : '#6b7280',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              transition: 'all 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              minWidth: 'fit-content'
-            }}
-          >
-            <LinkIcon size={16} />
-            Tisser les liens
-          </button>
-          </div>
-          {linkMode && (
-            <p style={{ fontSize: '0.875rem', color: '#A3C4E8', fontStyle: 'italic' }}>
-              {firstSelectedEntry 
-                ? `Sélectionnez le second élément à relier avec "${getEntryText(firstSelectedEntry).substring(0, 30)}..."`
-                : 'Cliquez sur un premier élément à relier'}
-            </p>
-          )}
-        </div>
+
 
         {/* NOUVELLE NAVIGATION EN 2 NIVEAUX */}
         <div style={{
@@ -874,19 +763,41 @@ useEffect(() => {
                 key={key}
                 onClick={() => setViewMode(key)}
                 style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  background: viewMode === key ? '#7BA7E1' : 'transparent',
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '0.75rem',
+                  border: viewMode === key ? 'none' : '2px solid transparent',
+                  background: viewMode === key 
+                    ? 'linear-gradient(135deg, #7BA7E1, #5B8BC6)' 
+                    : 'white',
                   color: viewMode === key ? 'white' : '#6b7280',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.3s ease',
+                  fontSize: '0.9rem',
+                  fontWeight: viewMode === key ? '600' : '500',
+                  boxShadow: viewMode === key 
+                    ? '0 4px 12px rgba(123, 167, 225, 0.3)' 
+                    : '0 2px 4px rgba(0, 0, 0, 0.05)',
+                  transform: 'translateY(0)'
+                }}
+                onMouseEnter={(e) => {
+                  if (viewMode !== key) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.borderColor = '#E6EDFF';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (viewMode !== key) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }
                 }}
               >
-                <Icon size={16} />
+                <Icon size={18} />
                 {label}
               </button>
             ))}
@@ -976,7 +887,7 @@ useEffect(() => {
         </div>
 
         {/* Section "L'Esprit Saint est à l'œuvre" - Plus visible */}
-        {showSuggestions && suggestions.length > 0 && (
+        {showSuggestions && (
           <div style={{
             background: 'white',
             borderRadius: '1rem',
@@ -1020,7 +931,7 @@ useEffect(() => {
               </button>
             </div>
             
-            {/* Contenu des suggestions */}
+            {/* Contenu avec les rappels doux */}
             <div style={{ padding: '1.5rem' }}>
               <p style={{ 
                 color: '#6b7280', 
@@ -1030,10 +941,17 @@ useEffect(() => {
               }}>
                 L'Esprit souffle et révèle des connexions dans votre vie spirituelle...
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {suggestions.map((suggestion, index) => {
-                  // Icon remplacé par emoji
-                  return (
+              
+              {/* Utilisation du composant RappelsDoux */}
+              <RappelsDoux 
+                entries={entries} 
+                onNavigateToEntry={(entry) => navigateToDetail(entry)}
+              />
+              
+              {/* Suggestions restantes (non-rappels) */}
+              {suggestions.filter(s => !s.action || s.action === 'Créer un lien').length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.75rem' }}>
+                  {suggestions.filter(s => !s.action || s.action === 'Créer un lien').map((suggestion, index) => (
                     <div 
                       key={index}
                       style={{
@@ -1044,20 +962,7 @@ useEffect(() => {
                         background: '#f9fafb',
                         borderRadius: '0.75rem',
                         border: '1px solid #e5e7eb',
-                        cursor: suggestion.action ? 'pointer' : 'default',
-                        transition: 'all 0.2s',
-                        ':hover': {
-                          borderColor: suggestion.color,
-                          transform: 'translateY(-1px)'
-                        }
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = suggestion.color
-                        e.currentTarget.style.transform = 'translateY(-1px)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = '#e5e7eb'
-                        e.currentTarget.style.transform = 'translateY(0)'
+                        transition: 'all 0.2s'
                       }}
                     >
                       <div style={{
@@ -1071,13 +976,10 @@ useEffect(() => {
                       <p style={{ color: '#1f2937', fontSize: '0.875rem', margin: 0, flex: 1 }}>
                         {suggestion.text}
                       </p>
-                      {suggestion.action && (
-                        <ChevronRight size={16} style={{ color: '#6b7280', flexShrink: 0 }} />
-                      )}
                     </div>
-                  )
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1104,7 +1006,7 @@ useEffect(() => {
               const Icon = config.icon
               const isExpanded = expandedEntry === entry.id
               const isLeft = index % 2 === 0
-              const isSelected = firstSelectedEntry?.id === entry.id
+              const isSelected = false // Plus de mode sélection après suppression du linkMode
 
               return (
                 <div
@@ -1145,11 +1047,7 @@ useEffect(() => {
                       marginLeft: isLeft ? '0' : '2.5rem'
                     }}
                     onClick={() => {
-                      if (linkMode) {
-                        handleLinkClick(entry)
-                      } else {
-                        setExpandedEntry(isExpanded ? null : entry.id)
-                      }
+                      setExpandedEntry(isExpanded ? null : entry.id)
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'start', gap: '1rem' }}>
@@ -1252,14 +1150,23 @@ useEffect(() => {
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '0.25rem',
-                                  color: '#D6E5F5',
+                                  color: '#7BA7E1',
                                   fontSize: '0.875rem',
                                   background: 'none',
                                   border: 'none',
                                   cursor: 'pointer',
                                   padding: '0.25rem 0.5rem',
                                   borderRadius: '0.25rem',
-                                  transition: 'background 0.2s'
+                                  transition: 'all 0.2s',
+                                  fontWeight: '500'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#E6EDFF';
+                                  e.currentTarget.style.transform = 'translateX(2px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'none';
+                                  e.currentTarget.style.transform = 'translateX(0)';
                                 }}
                               >
                                 <LinkIcon size={14} />
@@ -1319,7 +1226,7 @@ useEffect(() => {
                   </div>
                   <div style={{ padding: '1rem', maxHeight: '400px', overflow: 'auto' }}>
                     {typeEntries.slice(0, 5).map(entry => {
-                      const isSelected = firstSelectedEntry?.id === entry.id
+                      const isSelected = false
                       return (
                         <div
                           key={entry.id}
@@ -1398,7 +1305,7 @@ useEffect(() => {
                   .map(entry => {
                     const config = getTypeConfig(entry.type)
                     const Icon = config.icon
-                    const isSelected = firstSelectedEntry?.id === entry.id
+                    const isSelected = false
                     return (
                       <div
                         key={entry.id}
@@ -1459,7 +1366,7 @@ useEffect(() => {
                   .map(entry => {
                     const config = getTypeConfig(entry.type)
                     const Icon = config.icon
-                    const isSelected = firstSelectedEntry?.id === entry.id
+                    const isSelected = false
                     return (
                       <div
                         key={entry.id}
@@ -1505,7 +1412,7 @@ useEffect(() => {
               const config = getTypeConfig(entry.type)
               const Icon = config.icon
               const delay = index * 0.1
-              const isSelected = firstSelectedEntry?.id === entry.id
+              const isSelected = false
               
               return (
                 <div
@@ -1635,7 +1542,7 @@ useEffect(() => {
                 const Icon = config.icon
                 const position = (index / (filteredEntries.length - 1 || 1)) * 90 + 5
                 const yOffset = Math.sin(index * 0.8) * 80
-                const isSelected = firstSelectedEntry?.id === entry.id
+                const isSelected = false
                 
                 return (
                   <div
@@ -3507,17 +3414,45 @@ transform: 'translateX(-50%)',
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        
+        /* Styles unifiés pour les vues */
+        .vue-container {
+          animation: fadeIn 0.3s ease-out;
+          min-height: 400px;
+        }
+
+        .card-hover {
+          transition: all 0.2s ease;
+        }
+
+        .card-hover:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .link-action {
+          opacity: 0.8;
+          transition: all 0.2s ease;
+        }
+
+        .link-action:hover {
+          opacity: 1;
+          transform: translateX(2px);
+        }
+
+        @keyframes fadeIn {
+          from { 
+            opacity: 0; 
+            transform: translateY(10px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0); 
+          }
+        }
       `}</style>
       
-      {/* Widget liens récents - SEULEMENT si on n'est PAS dans la vue atelier */}
-      {viewMode !== 'atelier' && (
-        <WidgetLiensRecents
-          recentLinks={spiritualLinks}
-          entries={entries}
-          getEntryText={getEntryText}
-          getTypeConfig={getTypeConfig}
-        />
-      )}
+      {/* Widget supprimé - liens récents maintenant uniquement dans la vue atelier */}
       
       {/* Panneau latéral de création de liens */}
       <PanneauLateralLiens
