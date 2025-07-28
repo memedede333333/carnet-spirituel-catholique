@@ -4,9 +4,11 @@ import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
-import { Calendar, Book, Heart, User, Sparkles, Edit, Trash2, ArrowLeft, Tag } from 'lucide-react'
+import { Calendar, Book, Heart, User, Sparkles, Edit, Trash2, ArrowLeft, Tag, LinkIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import LinksList from '@/app/components/LinksList'
+import { loadUserSpiritualLinks } from '@/app/lib/spiritual-links-helpers'
 
 interface Ecriture {
   id: string
@@ -35,6 +37,8 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
   const [ecriture, setEcriture] = useState<Ecriture | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
+  const [allEntries, setAllEntries] = useState<any[]>([])
 
   useEffect(() => {
     fetchEcriture()
@@ -50,12 +54,44 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
 
       if (error) throw error
       setEcriture(data)
+      
+      // Charger les liens spirituels
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.id) {
+        loadUserSpiritualLinks(user.id).then(setSpiritualLinks)
+        loadAllEntries(user.id).then(setAllEntries)
+      }
     } catch (error) {
       console.error('Erreur:', error)
       router.push('/ecritures')
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadAllEntries = async (userId: string) => {
+    const allEntriesData: any[] = []
+    
+    const tables = [
+      { name: 'graces', type: 'grace' },
+      { name: 'prieres', type: 'priere' },
+      { name: 'paroles_ecriture', type: 'ecriture' },
+      { name: 'paroles_connaissance', type: 'parole' },
+      { name: 'rencontres_missionnaires', type: 'rencontre' }
+    ]
+    
+    for (const table of tables) {
+      const { data } = await supabase
+        .from(table.name)
+        .select('*')
+        .eq('user_id', userId)
+      
+      if (data) {
+        allEntriesData.push(...data.map(item => ({ ...item, type: table.type })))
+      }
+    }
+    
+    return allEntriesData
   }
 
   const handleDelete = async () => {
@@ -130,55 +166,8 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
             padding: '2rem',
             color: '#064E3B'
           }}>
-            {/* Bouton retour conditionnel avec vue */}
-              {(() => {
-                if (typeof window !== 'undefined') {
-                  const relectureState = sessionStorage.getItem('relecture-state');
-                  if (relectureState) {
-                    const state = JSON.parse(relectureState);
-                    return (
-                      <button
-                        onClick={() => {
-                          window.history.back();
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          color: '#064E3B',
-                          textDecoration: 'none',
-                          fontSize: '0.875rem',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '0.5rem',
-                          border: '1px solid #A7F3D0',
-                          background: '#F0FDF4',
-                          transition: 'all 0.2s',
-                          cursor: 'pointer',
-                          marginBottom: '1rem'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#D1FAE5';
-                          e.currentTarget.style.borderColor = '#6EE7B7';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#F0FDF4';
-                          e.currentTarget.style.borderColor = '#A7F3D0';
-                        }}
-                      >
-                        <ArrowLeft size={20} />
-                        Retour à la relecture
-                        <span style={{
-                          fontSize: '0.75rem',
-                          opacity: 0.7,
-                          marginLeft: '0.25rem'
-                        }}>
-                          ({state.viewLabel || 'Relecture'})
-                        </span>
-                      </button>
-                    );
-                  }
-                }
-                return <Link href="/ecritures" style={{
+            {/* Bouton retour vers le module */}
+            <Link href="/ecritures" style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
@@ -191,8 +180,7 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
             }}>
               <ArrowLeft size={16} />
               Retour aux écritures
-            </Link>;
-              })()}
+            </Link>
 
             <div style={{
               display: 'flex',
@@ -441,6 +429,91 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Section Connexions spirituelles */}
+            {spiritualLinks.filter(link => 
+              link.element_source_id === ecriture.id || 
+              link.element_cible_id === ecriture.id
+            ).length > 0 && (
+              <div style={{
+                marginTop: '2rem',
+                padding: '1.5rem',
+                background: '#D1FAE5',
+                borderRadius: '1rem',
+                border: '2px solid #A7F3D0',
+                boxShadow: '0 4px 14px -2px rgba(16, 185, 129, 0.2)'
+              }}>
+                <h3 style={{ 
+                  fontSize: '1.2rem', 
+                  fontWeight: '600',
+                  color: '#064E3B',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  🔗 Connexions spirituelles
+                </h3>
+                
+                <LinksList 
+                  entryId={ecriture.id}
+                  links={spiritualLinks}
+                  entries={allEntries}
+                  onViewEntry={(entryId) => {
+                    const entry = allEntries.find(e => e.id === entryId)
+                    if (entry) {
+                      router.push(`/${entry.type}s/${entry.id}`)
+                    }
+                  }}
+                  onDeleteLink={async (linkId) => {
+                    const { error } = await supabase
+                      .from('liens_spirituels')
+                      .delete()
+                      .eq('id', linkId)
+                    
+                    if (!error) {
+                      const { data: { user } } = await supabase.auth.getUser()
+                      if (user?.id) {
+                        const updatedLinks = await loadUserSpiritualLinks(user.id)
+                        setSpiritualLinks(updatedLinks)
+                      }
+                    }
+                  }}
+                />
+                
+                <button 
+                  onClick={() => router.push(`/relecture?mode=atelier&source=${ecriture.id}&sourceType=ecriture`)}
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem 1.5rem',
+                    background: '#10B981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#059669'
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#10B981'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  <LinkIcon size={16} />
+                  Créer une nouvelle connexion
+                </button>
               </div>
             )}
 

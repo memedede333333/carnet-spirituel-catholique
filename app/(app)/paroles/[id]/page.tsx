@@ -4,9 +4,11 @@ import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
-import { Calendar, MessageSquare, Users, MapPin, CheckCircle, Edit, Trash2, ArrowLeft, Sparkles } from 'lucide-react'
+import { Calendar, MessageSquare, Users, MapPin, CheckCircle, Edit, Trash2, ArrowLeft, Sparkles, LinkIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import LinksList from '@/app/components/LinksList'
+import { loadUserSpiritualLinks } from '@/app/lib/spiritual-links-helpers'
 
 interface Parole {
   id: string
@@ -35,6 +37,8 @@ export default function ParoleDetailPage({ params }: { params: Promise<{ id: str
   const [parole, setParole] = useState<Parole | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
+  const [allEntries, setAllEntries] = useState<any[]>([])
 
   useEffect(() => {
     fetchParole()
@@ -50,12 +54,44 @@ export default function ParoleDetailPage({ params }: { params: Promise<{ id: str
 
       if (error) throw error
       setParole(data)
+      
+      // Charger les liens spirituels
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.id) {
+        loadUserSpiritualLinks(user.id).then(setSpiritualLinks)
+        loadAllEntries(user.id).then(setAllEntries)
+      }
     } catch (error) {
       console.error('Erreur:', error)
       router.push('/paroles')
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadAllEntries = async (userId: string) => {
+    const allEntriesData: any[] = []
+    
+    const tables = [
+      { name: 'graces', type: 'grace' },
+      { name: 'prieres', type: 'priere' },
+      { name: 'paroles_ecriture', type: 'ecriture' },
+      { name: 'paroles_connaissance', type: 'parole' },
+      { name: 'rencontres_missionnaires', type: 'rencontre' }
+    ]
+    
+    for (const table of tables) {
+      const { data } = await supabase
+        .from(table.name)
+        .select('*')
+        .eq('user_id', userId)
+      
+      if (data) {
+        allEntriesData.push(...data.map(item => ({ ...item, type: table.type })))
+      }
+    }
+    
+    return allEntriesData
   }
 
   const handleDelete = async () => {
@@ -124,54 +160,8 @@ export default function ParoleDetailPage({ params }: { params: Promise<{ id: str
             padding: '2rem',
             color: '#075985'
           }}>
-            {/* Bouton retour conditionnel avec vue */}
-              {(() => {
-                if (typeof window !== 'undefined') {
-                  const relectureState = sessionStorage.getItem('relecture-state');
-                  if (relectureState) {
-                    const state = JSON.parse(relectureState);
-                    return (
-                      <button
-                        onClick={() => {
-                          window.history.back();
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          color: '#7BA7E1',
-                          textDecoration: 'none',
-                          fontSize: '0.875rem',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '0.5rem',
-                          border: '1px solid #E6EDFF',
-                          background: '#F0F4FF',
-                          transition: 'all 0.2s',
-                          cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#E6EDFF';
-                          e.currentTarget.style.borderColor = '#7BA7E1';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#F0F4FF';
-                          e.currentTarget.style.borderColor = '#E6EDFF';
-                        }}
-                      >
-                        <ArrowLeft size={20} />
-                        Retour à la relecture
-                        <span style={{
-                          fontSize: '0.75rem',
-                          opacity: 0.7,
-                          marginLeft: '0.25rem'
-                        }}>
-                          ({state.viewLabel || 'Relecture'})
-                        </span>
-                      </button>
-                    );
-                  }
-                }
-                return <Link href="/paroles" style={{
+            {/* Bouton retour vers le module */}
+            <Link href="/paroles" style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
@@ -184,8 +174,7 @@ export default function ParoleDetailPage({ params }: { params: Promise<{ id: str
             }}>
               <ArrowLeft size={16} />
               Retour aux paroles
-            </Link>;
-              })()}
+            </Link>
 
             <div style={{
               display: 'flex',
@@ -399,6 +388,92 @@ export default function ParoleDetailPage({ params }: { params: Promise<{ id: str
                 }}>
                   {parole.fruit_constate}
                 </p>
+              </div>
+            )}
+
+            {/* Section Connexions spirituelles */}
+            {spiritualLinks.filter(link => 
+              link.element_source_id === parole.id || 
+              link.element_cible_id === parole.id
+            ).length > 0 && (
+              <div style={{
+                marginTop: '2rem',
+                marginBottom: '2rem',
+                padding: '1.5rem',
+                background: '#E0F2FE',
+                borderRadius: '1rem',
+                border: '2px solid #BAE6FD',
+                boxShadow: '0 4px 14px -2px rgba(14, 165, 233, 0.2)'
+              }}>
+                <h3 style={{ 
+                  fontSize: '1.2rem', 
+                  fontWeight: '600',
+                  color: '#075985',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  🔗 Connexions spirituelles
+                </h3>
+                
+                <LinksList 
+                  entryId={parole.id}
+                  links={spiritualLinks}
+                  entries={allEntries}
+                  onViewEntry={(entryId) => {
+                    const entry = allEntries.find(e => e.id === entryId)
+                    if (entry) {
+                      router.push(`/${entry.type}s/${entry.id}`)
+                    }
+                  }}
+                  onDeleteLink={async (linkId) => {
+                    const { error } = await supabase
+                      .from('liens_spirituels')
+                      .delete()
+                      .eq('id', linkId)
+                    
+                    if (!error) {
+                      const { data: { user } } = await supabase.auth.getUser()
+                      if (user?.id) {
+                        const updatedLinks = await loadUserSpiritualLinks(user.id)
+                        setSpiritualLinks(updatedLinks)
+                      }
+                    }
+                  }}
+                />
+                
+                <button 
+                  onClick={() => router.push(`/relecture?mode=atelier&source=${parole.id}&sourceType=parole`)}
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem 1.5rem',
+                    background: '#0EA5E9',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#0284C7'
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(14, 165, 233, 0.3)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#0EA5E9'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  <LinkIcon size={16} />
+                  Créer une nouvelle connexion
+                </button>
               </div>
             )}
 

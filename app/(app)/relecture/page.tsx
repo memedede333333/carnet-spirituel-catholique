@@ -47,6 +47,7 @@ export default function RelecturePage() {
   const [selectedDest, setSelectedDest] = useState<any>(null)
   const [selectedLinkType, setSelectedLinkType] = useState('exauce')
   const [linkNotification, setLinkNotification] = useState<{ message: string; type: string } | null>(null)
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -73,6 +74,47 @@ useEffect(() => {
   useEffect(() => {
     filterEntries()
   }, [entries, selectedPeriod, selectedTypes])
+
+  // Gérer la pré-sélection depuis une page de détail
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const sourceId = urlParams.get('source')
+      const sourceType = urlParams.get('sourceType')
+      
+      if (sourceId && sourceType && entries.length > 0) {
+        const sourceEntry = entries.find(e => e.id === sourceId && e.type === sourceType)
+        if (sourceEntry) {
+          setSelectedSource(sourceEntry)
+          // S'assurer qu'on est en mode atelier
+          if (viewMode !== 'atelier') {
+            setViewMode('atelier')
+          }
+          
+          // Afficher le message de bienvenue
+          setShowWelcomeMessage(true)
+          setTimeout(() => setShowWelcomeMessage(false), 5000) // Disparaît après 5 secondes
+          
+          // Scroll vers la section atelier après un court délai
+          setTimeout(() => {
+            const atelierSection = document.getElementById('section-atelier')
+            if (atelierSection) {
+              atelierSection.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest' 
+              })
+              
+              // Sur mobile, ajouter un peu d'espace en haut
+              if (window.innerWidth < 768) {
+                window.scrollBy(0, -20)
+              }
+            }
+          }, 300)
+        }
+      }
+    }
+  }, [entries])
 
   async function loadAllEntries() {
     try {
@@ -2590,8 +2632,41 @@ transform: 'translateX(-50%)',
         )}
 
 
+        {showWelcomeMessage && viewMode === 'atelier' && (
+          <div style={{
+            background: 'linear-gradient(135deg, #10B981, #059669)',
+            color: 'white',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1rem',
+            textAlign: 'center',
+            animation: 'slideDown 0.5s ease-out',
+            position: 'relative'
+          }}>
+            <p style={{ margin: 0, fontWeight: '500' }}>
+              ✨ Votre élément est pré-sélectionné ! Choisissez maintenant la destination du lien.
+            </p>
+            <button
+              onClick={() => setShowWelcomeMessage(false)}
+              style={{
+                position: 'absolute',
+                top: '0.5rem',
+                right: '0.5rem',
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                opacity: 0.8
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {viewMode === 'atelier' && (
-          <div>
+          <div id="section-atelier">
             <div style={{
               background: 'linear-gradient(135deg, #E0F2FE, #BAE6FD)',
               borderRadius: '1rem',

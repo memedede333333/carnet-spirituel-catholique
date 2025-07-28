@@ -4,9 +4,11 @@ import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
-import { Calendar, MapPin, User, Users, Heart, Edit, Trash2, ArrowLeft, Clock } from 'lucide-react'
+import { Calendar, MapPin, User, Users, Heart, Edit, Trash2, ArrowLeft, Clock, LinkIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import LinksList from '@/app/components/LinksList'
+import { loadUserSpiritualLinks } from '@/app/lib/spiritual-links-helpers'
 
 interface Rencontre {
   id: string
@@ -38,6 +40,8 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
   const [rencontre, setRencontre] = useState<Rencontre | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [spiritualLinks, setSpiritualLinks] = useState<any[]>([])
+  const [allEntries, setAllEntries] = useState<any[]>([])
 
   useEffect(() => {
     fetchRencontre()
@@ -53,12 +57,44 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
 
       if (error) throw error
       setRencontre(data)
+      
+      // Charger les liens spirituels
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.id) {
+        loadUserSpiritualLinks(user.id).then(setSpiritualLinks)
+        loadAllEntries(user.id).then(setAllEntries)
+      }
     } catch (error) {
       console.error('Erreur:', error)
       router.push('/rencontres')
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadAllEntries = async (userId: string) => {
+    const allEntriesData: any[] = []
+    
+    const tables = [
+      { name: 'graces', type: 'grace' },
+      { name: 'prieres', type: 'priere' },
+      { name: 'paroles_ecriture', type: 'ecriture' },
+      { name: 'paroles_connaissance', type: 'parole' },
+      { name: 'rencontres_missionnaires', type: 'rencontre' }
+    ]
+    
+    for (const table of tables) {
+      const { data } = await supabase
+        .from(table.name)
+        .select('*')
+        .eq('user_id', userId)
+      
+      if (data) {
+        allEntriesData.push(...data.map(item => ({ ...item, type: table.type })))
+      }
+    }
+    
+    return allEntriesData
   }
 
   const handleDelete = async () => {
@@ -133,54 +169,8 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
             padding: '2rem',
             color: '#451A03'
           }}>
-            {/* Bouton retour conditionnel avec vue */}
-              {(() => {
-                if (typeof window !== 'undefined') {
-                  const relectureState = sessionStorage.getItem('relecture-state');
-                  if (relectureState) {
-                    const state = JSON.parse(relectureState);
-                    return (
-                      <button
-                        onClick={() => {
-                          window.history.back();
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          color: '#451A03',
-                          textDecoration: 'none',
-                          fontSize: '0.875rem',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '0.5rem',
-                          border: '1px solid #E6EDFF',
-                          background: '#F0F4FF',
-                          transition: 'all 0.2s',
-                          cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#E6EDFF';
-                          e.currentTarget.style.borderColor = '#7BA7E1';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#F0F4FF';
-                          e.currentTarget.style.borderColor = '#E6EDFF';
-                        }}
-                      >
-                        <ArrowLeft size={20} />
-                        Retour à la relecture
-                        <span style={{
-                          fontSize: '0.75rem',
-                          opacity: 0.7,
-                          marginLeft: '0.25rem'
-                        }}>
-                          ({state.viewLabel || 'Relecture'})
-                        </span>
-                      </button>
-                    );
-                  }
-                }
-                return <Link href="/rencontres" style={{
+            {/* Bouton retour vers le module */}
+            <Link href="/rencontres" style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
@@ -193,8 +183,7 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
             }}>
               <ArrowLeft size={16} />
               Retour aux rencontres
-            </Link>;
-              })()}
+            </Link>
 
             <div style={{
               display: 'flex',
@@ -452,6 +441,92 @@ export default function RencontreDetailPage({ params }: { params: Promise<{ id: 
                     </p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Section Connexions spirituelles */}
+            {spiritualLinks.filter(link => 
+              link.element_source_id === rencontre.id || 
+              link.element_cible_id === rencontre.id
+            ).length > 0 && (
+              <div style={{
+                marginTop: '2rem',
+                marginBottom: '2rem',
+                padding: '1.5rem',
+                background: '#FFF7ED',
+                borderRadius: '1rem',
+                border: '2px solid #FED7AA',
+                boxShadow: '0 4px 14px -2px rgba(198, 93, 0, 0.2)'
+              }}>
+                <h3 style={{ 
+                  fontSize: '1.2rem', 
+                  fontWeight: '600',
+                  color: '#451A03',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  🔗 Connexions spirituelles
+                </h3>
+                
+                <LinksList 
+                  entryId={rencontre.id}
+                  links={spiritualLinks}
+                  entries={allEntries}
+                  onViewEntry={(entryId) => {
+                    const entry = allEntries.find(e => e.id === entryId)
+                    if (entry) {
+                      router.push(`/${entry.type}s/${entry.id}`)
+                    }
+                  }}
+                  onDeleteLink={async (linkId) => {
+                    const { error } = await supabase
+                      .from('liens_spirituels')
+                      .delete()
+                      .eq('id', linkId)
+                    
+                    if (!error) {
+                      const { data: { user } } = await supabase.auth.getUser()
+                      if (user?.id) {
+                        const updatedLinks = await loadUserSpiritualLinks(user.id)
+                        setSpiritualLinks(updatedLinks)
+                      }
+                    }
+                  }}
+                />
+                
+                <button 
+                  onClick={() => router.push(`/relecture?mode=atelier&source=${rencontre.id}&sourceType=rencontre`)}
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem 1.5rem',
+                    background: '#C65D00',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#D97706'
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(198, 93, 0, 0.3)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#C65D00'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  <LinkIcon size={16} />
+                  Créer une nouvelle connexion
+                </button>
               </div>
             )}
 
