@@ -432,91 +432,6 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
               </div>
             )}
 
-            {/* Section Connexions spirituelles */}
-            {spiritualLinks.filter(link => 
-              link.element_source_id === ecriture.id || 
-              link.element_cible_id === ecriture.id
-            ).length > 0 && (
-              <div style={{
-                marginTop: '2rem',
-                padding: '1.5rem',
-                background: '#D1FAE5',
-                borderRadius: '1rem',
-                border: '2px solid #A7F3D0',
-                boxShadow: '0 4px 14px -2px rgba(16, 185, 129, 0.2)'
-              }}>
-                <h3 style={{ 
-                  fontSize: '1.2rem', 
-                  fontWeight: '600',
-                  color: '#064E3B',
-                  marginBottom: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  🔗 Connexions spirituelles
-                </h3>
-                
-                <LinksList 
-                  entryId={ecriture.id}
-                  links={spiritualLinks}
-                  entries={allEntries}
-                  onViewEntry={(entryId) => {
-                    const entry = allEntries.find(e => e.id === entryId)
-                    if (entry) {
-                      router.push(`/${entry.type}s/${entry.id}`)
-                    }
-                  }}
-                  onDeleteLink={async (linkId) => {
-                    const { error } = await supabase
-                      .from('liens_spirituels')
-                      .delete()
-                      .eq('id', linkId)
-                    
-                    if (!error) {
-                      const { data: { user } } = await supabase.auth.getUser()
-                      if (user?.id) {
-                        const updatedLinks = await loadUserSpiritualLinks(user.id)
-                        setSpiritualLinks(updatedLinks)
-                      }
-                    }
-                  }}
-                />
-                
-                <button 
-                  onClick={() => router.push(`/relecture?mode=atelier&source=${ecriture.id}&sourceType=ecriture`)}
-                  style={{
-                    marginTop: '1rem',
-                    padding: '0.75rem 1.5rem',
-                    background: '#10B981',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#059669'
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#10B981'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
-                >
-                  <LinkIcon size={16} />
-                  Créer une nouvelle connexion
-                </button>
-              </div>
-            )}
-
             {/* Citation en bas */}
             <div style={{
               marginTop: '3rem',
@@ -543,6 +458,109 @@ export default function EcritureDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
         </div>
+
+        {/* Section Connexions spirituelles */}
+        {spiritualLinks.filter(link =>
+          link.element_source_id === ecriture.id ||
+          link.element_cible_id === ecriture.id
+        ).length > 0 && (
+          <>
+            {/* Espace de respiration */}
+            <div style={{ height: '2rem' }} />
+            
+            {/* Container connexions */}
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <div style={{
+                background: 'white',
+                borderRadius: '1rem',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.1)'
+              }}>
+                {/* Barre supérieure décorative */}
+                <div style={{
+                  height: '4px',
+                  background: 'linear-gradient(90deg, #A7F3D0 0%, #6EE7B7 50%, #A7F3D0 100%)'
+                }} />
+                
+                <div style={{
+                  padding: '1.5rem',
+                  background: '#F0FDF4'
+                }}>
+                  <h3 style={{ 
+                    fontSize: '1.2rem', 
+                    fontWeight: '600',
+                    color: '#064E3B',
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    🔗 Connexions spirituelles
+                  </h3>
+                  
+                  <LinksList 
+                    entryId={ecriture.id}
+                    links={spiritualLinks}
+                    entries={allEntries}
+                    onViewEntry={(entryId) => {
+                      const entry = allEntries.find(e => e.id === entryId)
+                      if (entry) {
+                        router.push(`/${entry.type}s/${entry.id}`)
+                      }
+                    }}
+                    onDeleteLink={async (linkId) => {
+                      const { error } = await supabase
+                        .from('liens_spirituels')
+                        .delete()
+                        .eq('id', linkId)
+                      
+                      if (!error) {
+                        const { data: { user } } = await supabase.auth.getUser()
+                        if (user?.id) {
+                          const updatedLinks = await loadUserSpiritualLinks(user.id)
+                          setSpiritualLinks(updatedLinks)
+                        }
+                      }
+                    }}
+                  />
+                  
+                  <button 
+                    onClick={() => router.push(`/relecture?mode=atelier&source=${ecriture.id}&sourceType=ecriture`)}
+                    style={{
+                      marginTop: '1rem',
+                      padding: '0.75rem 1.5rem',
+                      background: '#10B981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      transition: 'all 0.2s',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#059669'
+                      e.currentTarget.style.transform = 'translateY(-2px)'
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#10B981'
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
+                  >
+                    <LinkIcon size={16} />
+                    Créer une nouvelle connexion
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

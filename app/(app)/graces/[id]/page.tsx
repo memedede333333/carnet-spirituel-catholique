@@ -411,91 +411,6 @@ export default function GraceDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             )}
 
-            {/* Section Connexions spirituelles */}
-            {spiritualLinks.filter(link => 
-              link.element_source_id === grace.id || 
-              link.element_cible_id === grace.id
-            ).length > 0 && (
-              <div style={{
-                marginTop: '2rem',
-                padding: '1.5rem',
-                background: '#FEF3C7',
-                borderRadius: '1rem',
-                border: '2px solid #FDE68A',
-                boxShadow: '0 4px 14px -2px rgba(245, 158, 11, 0.2)'
-              }}>
-                <h3 style={{ 
-                  fontSize: '1.2rem', 
-                  fontWeight: '600',
-                  color: '#78350F',
-                  marginBottom: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  🔗 Connexions spirituelles
-                </h3>
-                
-                <LinksList 
-                  entryId={grace.id}
-                  links={spiritualLinks}
-                  entries={allEntries}
-                  onViewEntry={(entryId) => {
-                    const entry = allEntries.find(e => e.id === entryId)
-                    if (entry) {
-                      router.push(`/${entry.type}s/${entry.id}`)
-                    }
-                  }}
-                  onDeleteLink={async (linkId) => {
-                    const { error } = await supabase
-                      .from('liens_spirituels')
-                      .delete()
-                      .eq('id', linkId)
-                    
-                    if (!error) {
-                      const { data: { user } } = await supabase.auth.getUser()
-                      if (user?.id) {
-                        const updatedLinks = await loadUserSpiritualLinks(user.id)
-                        setSpiritualLinks(updatedLinks)
-                      }
-                    }
-                  }}
-                />
-                
-                <button 
-                  onClick={() => router.push(`/relecture?mode=atelier&source=${grace.id}&sourceType=grace`)}
-                  style={{
-                    marginTop: '1rem',
-                    padding: '0.75rem 1.5rem',
-                    background: '#F59E0B',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#D97706'
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#F59E0B'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
-                >
-                  <LinkIcon size={16} />
-                  Créer une nouvelle connexion
-                </button>
-              </div>
-            )}
-
             {/* Actions de partage si privé */}
             {grace.visibilite !== 'prive' && grace.statut_partage === 'brouillon' && (
               <div style={{
@@ -533,6 +448,109 @@ export default function GraceDetailPage({ params }: { params: Promise<{ id: stri
             )}
           </div>
         </div>
+
+        {/* Section Connexions spirituelles */}
+        {spiritualLinks.filter(link =>
+          link.element_source_id === grace.id ||
+          link.element_cible_id === grace.id
+        ).length > 0 && (
+          <>
+            {/* Espace de respiration */}
+            <div style={{ height: '2rem' }} />
+            
+            {/* Container connexions */}
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <div style={{
+                background: 'white',
+                borderRadius: '1rem',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                border: '1px solid rgba(245, 158, 11, 0.1)'
+              }}>
+                {/* Barre supérieure décorative */}
+                <div style={{
+                  height: '4px',
+                  background: 'linear-gradient(90deg, #FDE68A 0%, #FCD34D 50%, #FDE68A 100%)'
+                }} />
+                
+                <div style={{
+                  padding: '1.5rem',
+                  background: '#FFFBEB'
+                }}>
+                  <h3 style={{ 
+                    fontSize: '1.2rem', 
+                    fontWeight: '600',
+                    color: '#78350F',
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    🔗 Connexions spirituelles
+                  </h3>
+                  
+                  <LinksList 
+                    entryId={grace.id}
+                    links={spiritualLinks}
+                    entries={allEntries}
+                    onViewEntry={(entryId) => {
+                      const entry = allEntries.find(e => e.id === entryId)
+                      if (entry) {
+                        router.push(`/${entry.type}s/${entry.id}`)
+                      }
+                    }}
+                    onDeleteLink={async (linkId) => {
+                      const { error } = await supabase
+                        .from('liens_spirituels')
+                        .delete()
+                        .eq('id', linkId)
+                      
+                      if (!error) {
+                        const { data: { user } } = await supabase.auth.getUser()
+                        if (user?.id) {
+                          const updatedLinks = await loadUserSpiritualLinks(user.id)
+                          setSpiritualLinks(updatedLinks)
+                        }
+                      }
+                    }}
+                  />
+                  
+                  <button 
+                    onClick={() => router.push(`/relecture?mode=atelier&source=${grace.id}&sourceType=grace`)}
+                    style={{
+                      marginTop: '1rem',
+                      padding: '0.75rem 1.5rem',
+                      background: '#F59E0B',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      transition: 'all 0.2s',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#D97706'
+                      e.currentTarget.style.transform = 'translateY(-2px)'
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#F59E0B'
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
+                  >
+                    <LinkIcon size={16} />
+                    Créer une nouvelle connexion
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
